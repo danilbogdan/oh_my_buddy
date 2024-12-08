@@ -5,14 +5,14 @@ from ._interface import LLMProviderInterface
 from apps.llmanager.repositories.provider_config import ProviderConfigRepository
 
 
-class OpenAIProvider(LLMProviderInterface):
-    name = "openai"
+class LMStudioProvider(LLMProviderInterface):
+    name = "lmstudio"
 
-    def __init__(self, messages=None):
-        self.client = OpenAI(api_key=settings.OPENAI_CONFIG["API_KEY"])
+    def __init__(self):
+        self.client = OpenAI(base_url=f"{settings.CUSTOM_OPENAI_HOST}:{settings.CUSTOM_OPENAI_PORT}/v1", api_key="lm-studio")
         self.model = ProviderConfigRepository.get_model()
         self.system_instruction = ProviderConfigRepository.get_system_instruction()
-        self._messages = messages or []
+        self._messages = []
         self._messages.append({"role": "system", "content": self.system_instruction})
 
     def generate_response(self, prompt: str) -> str:

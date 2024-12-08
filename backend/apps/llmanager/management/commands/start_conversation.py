@@ -1,5 +1,6 @@
+from typing import TYPE_CHECKING
 from django.core.management.base import BaseCommand
-from apps.llmanager.providers import LLMFactory
+from apps.llmanager.providers import LLMProviderFactory
 from apps.llmanager.repositories.provider_config import ProviderConfigRepository
 
 
@@ -7,10 +8,10 @@ class Command(BaseCommand):
     help = "Start a conversation with the LLM"
 
     def handle(self, *args, **kwargs):
-        provider_name = ProviderConfigRepository.get_provider()
-        llm_provider = LLMFactory.get_llm_provider(provider_name)
+        provider = ProviderConfigRepository.get_provider()
+        llm_provider = LLMProviderFactory.get_llm_provider(provider)
 
-        self.stdout.write(self.style.SUCCESS("Starting conversation with LLM..."))
+        self.stdout.write(self.style.SUCCESS(f"Starting conversation with LLM '{llm_provider.name}' ..."))
 
         while True:
             prompt = input("You: ")

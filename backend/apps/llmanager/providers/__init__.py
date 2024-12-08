@@ -1,11 +1,12 @@
-from ._openai import OpenAIProvider
+from ._lmstudio import *
+from ._openai import *
 from ._interface import LLMProviderInterface
 
 
-class LLMFactory:
+class LLMProviderFactory:
     @staticmethod
     def get_llm_provider(provider_name: str) -> LLMProviderInterface:
-        if provider_name == "openai":
-            return OpenAIProvider()
-        else:
-            raise ValueError(f"Unknown provider: {provider_name}")
+        for provider in LLMProviderInterface.__subclasses__():
+            if provider.name == provider_name:
+                return provider()
+        raise ValueError(f"Unknown provider: {provider_name}")

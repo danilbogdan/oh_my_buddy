@@ -5,7 +5,7 @@ class ProviderConfigRepository:
 
     @classmethod
     def get_model(cls):
-        return LLMProviderConfig.get_solo().model
+        return LLMProviderConfig.get_solo().model.name
 
     @classmethod
     def get_system_instruction(cls):
@@ -13,4 +13,4 @@ class ProviderConfigRepository:
 
     @classmethod
     def get_provider(cls):
-        return LLMProviderConfig.get_solo().provider
+        return LLMProviderConfig.get_solo().provider.name

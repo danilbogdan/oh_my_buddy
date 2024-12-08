@@ -1,3 +1,4 @@
+from django.utils.translation import gettext_lazy as _
 from django.db import models
 from solo.models import SingletonModel
 
@@ -9,17 +10,17 @@ class LLMProviderConfig(SingletonModel):
         help_text="This is the instruction that the AI will use to generate responses.",
         default="You are a helpful personal assistant.",
     )
-    provider = models.CharField(
-        "Provider",
-        max_length=255,
+    provider = models.ForeignKey(
+        "llmanager.LLMProvider",
+        on_delete=models.CASCADE,
         help_text="The provider that the AI will use to generate responses.",
-        default="openai",
+        null=True,
     )
-    model = models.CharField(
-        "Model",
-        max_length=255,
+    model = models.ForeignKey(
+        "llmanager.LLModel",
+        on_delete=models.CASCADE,
         help_text="The model that the AI will use to generate responses.",
-        default="gpt-4o",
+        null=True,
     )
 
     def __str__(self):
@@ -27,3 +28,28 @@ class LLMProviderConfig(SingletonModel):
 
     class Meta:
         verbose_name = "LLM Provider Configuration"
+
+
+class LLModel(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+
+    class Meta:
+        verbose_name = _("LLModel")
+        verbose_name_plural = _("LLModels")
+
+    def __str__(self):
+        return self.name
+
+
+class LLMProvider(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+    model = models.ForeignKey(LLModel, on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = _("LLMProvider")
+        verbose_name_plural = _("LLMProviders")
+
+    def __str__(self):
+        return self.name
