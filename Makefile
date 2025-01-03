@@ -12,6 +12,9 @@ daemon:
 start-chat:
 	$(COMPOSE_MANAGE_CMD) start_conversation
 
+start-bot:
+	$(COMPOSE_MANAGE_CMD) start_telegram_bot
+
 migrate:
 	$(COMPOSE_MANAGE_CMD) migrate
 

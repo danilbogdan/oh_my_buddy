@@ -1,0 +1,24 @@
+{
+    "configurations": [
+
+        {
+            "type": "debugpy",
+            "request": "launch",
+            "name": "Launch Django App",
+            "program": "${workspaceFolder}/backend/manage.py",
+            "args": [
+                "runserver"
+            ],
+            "django": true
+        },{
+            "type": "debugpy",
+            "request": "launch",
+            "name": "Start conversation",
+            "program": "${workspaceFolder}/backend/manage.py",
+            "args": [
+                "start_conversation"
+            ],
+            "django": true
+        }
+    ]
+}
