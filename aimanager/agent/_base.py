@@ -19,13 +19,13 @@ class BaseAgent(AIAgentInterface):
         self.completions = CompletionsClientBuilder.build(kwargs.get('provider') or self.model_provider)
 
     def get_conversation(self, user_id: str, system: bool = True) -> list[dict]:
-        conversation = self.memory.get_from_memory(user_id, self.name)
+        conversation = self.memory.get_conversation(user_id, self.name)
         if not system:
             conversation = [message for message in conversation if message["role"] != "system"]
         return conversation
 
     def clear_conversation(self, user_id: str) -> dict:
-        return self.memory.clear_memory(user_id, self.name)
+        return self.memory.delete_conversation(user_id, self.name)
 
     def generate_response(self, prompt: str, user_id: str) -> str:
         messages = self.get_conversation(user_id)
@@ -34,7 +34,7 @@ class BaseAgent(AIAgentInterface):
         messages.append({"role": "user", "content": prompt})
         response = self.completions.generate_response(messages)
         messages.append({"role": "assistant", "content": response})
-        self.memory.save_conversation_to_memory(messages, user_id, self.name)
+        self.memory.save_conversation(messages, user_id, self.name)
         return response
 
     def generate_response_stream(self, prompt: str, user_id: str) -> str:
@@ -48,5 +48,5 @@ class BaseAgent(AIAgentInterface):
             yield chunk
             response += chunk
         messages.append({"role": "assistant", "content": response})
-        self.memory.save_conversation_to_memory(messages, user_id, self.name)
+        self.memory.save_conversation(messages, user_id, self.name)
         return response

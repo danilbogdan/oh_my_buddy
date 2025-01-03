@@ -15,8 +15,11 @@ class Mem0MemoryProvider(MemoryProviderInterface):
         api_key = kwargs.get("api_key") or os.getenv("MEM0_API_KEY")
         self.client = MemoryClient(api_key=api_key)
 
-    def save_conversation_to_memory(self, data: list[dict], user_id: str, agent_id: str) -> dict:
+    def save_conversation(self, data: list[dict], user_id: str, agent_id: str) -> dict:
         self.client.add(data, user_id=user_id, agent_id=agent_id)
 
-    def get_from_memory(self, query: str, user_id: str, agent_id: str) -> dict:
-        return self.client.search(query, user_id=user_id, agent_id=agent_id)
+    def get_conversation(self, user_id: str, agent_id: str) -> list[dict]:
+        return self.client.search(user_id=user_id, agent_id=agent_id)
+
+    def delete_conversation(self, user_id: str, agent_id: str) -> dict:
+        self.client.delete_all(user_id=user_id, agent_id=agent_id)
