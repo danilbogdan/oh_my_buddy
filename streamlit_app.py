@@ -2,11 +2,11 @@ import os
 import streamlit as st
 import requests
 from streamlit_cookies_controller import CookieController
-from django.conf import settings
 
 # Set the URL of the Django app view
 app_host = os.getenv('PROMPT_API_HOST', 'http://localhost:8000')
 auth_api = app_host + "/auth/token/login/"
+auth_api_logout = app_host + "/auth/token/logout/"
 chat_api = app_host + "/chatbot/prompt/"
 
 st.set_page_config("Chatbot Interface", "🤖", layout="wide")
@@ -48,26 +48,40 @@ if not st.session_state["authenticated"]:
         else:
             st.error("Invalid username or password")
         st.rerun()
+
+    if st.button("Try without login"):
+        st.session_state["authenticated"] = True
+        st.session_state["token"] = None
+        st.session_state["username"] = "Guest"
+        st.session_state["conversation"] = []
+        st.rerun()
+
 else:
     st.subheader(f"Welcome, {st.session_state['username']}")
 
-    if st.button("Logout"):
-        st.session_state["authenticated"] = False
-        st.session_state["token"] = None
-        st.session_state["username"] = None
-        st.session_state["conversation"] = []
-        controller.remove("token")
-        controller.remove("username")
-        st.success("Logged out successfully")
-        st.rerun()
+    if st.session_state["token"]:
+        if st.button("Logout"):
+            # Call the logout API
+            headers = {"Authorization": f'Token {st.session_state["token"]}'}
+            logout_response = requests.post(auth_api_logout, headers=headers)
+            st.session_state["authenticated"] = False
+            st.session_state["token"] = None
+            st.session_state["username"] = None
+            st.session_state["conversation"] = []
+            controller.remove("token")
+            controller.remove("username")
+            st.success("Logged out successfully")
+            st.rerun()
 
 if st.session_state["authenticated"]:
-    # Fetch conversation history
-    headers = {"Authorization": f'Token {st.session_state["token"]}'}
-    history_response = requests.get(chat_api, headers=headers)
+    headers = {"Authorization": f'Token {st.session_state["token"]}'} if st.session_state["token"] else {}
+    if "conversation" not in st.session_state or not st.session_state["conversation"]:
+        history_response = requests.get(chat_api, headers=headers)
 
-    if history_response.status_code == 200:
-        st.session_state["conversation"] = history_response.json()
+        if history_response.status_code == 200:
+            st.session_state["conversation"] = history_response.json()
+        elif history_response.status_code == 401:
+            st.error("Call limit for anonymous users exceeded")
 
     # Display conversation history
     for message in st.session_state["conversation"]:
@@ -87,13 +101,14 @@ if st.session_state["authenticated"]:
             def iter_content():
                 chatbot_response = ""
                 for chunk in response.iter_content(chunk_size=20):
-                    text = chunk.decode("utf-8", errors='replace')
+                    text = chunk.decode("utf-8", errors='ignore')
                     chatbot_response += text
                     yield text
-                st.session_state["conversation"].append({"role": "chatbot", "content": chatbot_response})
+                st.session_state["conversation"].append({"role": "assistant", "content": chatbot_response})
             with st.chat_message("assistant"):
                 st.write(iter_content())
-
+        elif response.status_code == 401:
+            st.error("Call limit for anonymous users exceeded")
         else:
             st.write("Error: Unable to get response from chatbot.")
 

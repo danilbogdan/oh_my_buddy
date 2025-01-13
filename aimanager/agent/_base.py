@@ -1,3 +1,4 @@
+import os
 from ._interface import AIAgentInterface
 from aimanager.memory.builder import MemoryProviderBuilder
 from aimanager.completions.builder import CompletionsClientBuilder
@@ -5,8 +6,8 @@ from aimanager.completions.builder import CompletionsClientBuilder
 
 class BaseAgent(AIAgentInterface):
     name = "base"
-    model_provider = "openai"
-    memory_provider = "redis"
+    model_provider = os.getenv("DEFAULT_MODEL_PROVIDER", "openai")
+    memory_provider = os.getenv("DEFAULT_MEMORY_PROVIDER", "redis")
     system_prompt = (
         "You are an AI assistant. The assistant is helpful, creative,"
         "clever, and very friendly. You help users with his tasks and answers his questions."
