@@ -1,12 +1,13 @@
 import os
 import logging
+from typing import Generator
 
 from django.conf import settings
 from ._interface import AIAgentInterface
 from aimanager.memory.builder import MemoryProviderBuilder
 from aimanager.completions.builder import CompletionsClientBuilder
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('django')
 
 
 class BaseAgent(AIAgentInterface):
@@ -24,38 +25,34 @@ class BaseAgent(AIAgentInterface):
         self.memory = MemoryProviderBuilder.build(self.memory_provider)
         self.completions = CompletionsClientBuilder.build(kwargs.get('provider') or self.model_provider)
         self.model = kwargs.get('model')
-        if settings.DEBUG:
-            logger.info(f"Memory Provider: {self.memory_provider}, Model Provider: {self.completions.name}, Model: {self.model}")
 
-    def get_conversation(self, user_id: str, system: bool = True, conversation_id: str = None) -> list[dict]:
+    def get_conversation(self, user_id: str, conversation_id: str = None) -> list[dict]:
         conversation = self.memory.get_conversation(user_id, self.name, conversation_id)
-        if not system:
-            conversation = [message for message in conversation if message["role"] != "system"]
-        return conversation
+        return conversation or []
 
     def clear_conversation(self, user_id: str, conversation_id: str = None) -> dict:
         return self.memory.delete_conversation(user_id, self.name, conversation_id)
 
     def generate_response(self, prompt: str, user_id: str, conversation_id: str = None) -> str:
+        system_messages = [{"role": "system", "content": self.system_prompt}]
         messages = self.get_conversation(user_id)
-        if not messages:
-            messages = [{"role": "system", "content": self.system_prompt}]
-        messages.append({"role": "user", "content": prompt})
-        response = self.completions.generate_response(messages, model=self.model)
-        messages.append({"role": "assistant", "content": response})
-        self.memory.save_conversation(messages, user_id, self.name, conversation_id)
+        user_message = [{"role": "user", "content": prompt}]
+        self.memory.add_messages_to_conversation(user_message, user_id, self.name, conversation_id)
+        response = self.completions.generate_response(system_messages + messages, model=self.model)
+        message = [{"role": "assistant", "content": response}]
+        self.memory.add_messages_to_conversation(message, user_id, self.name, conversation_id)
         return response
 
-    def generate_response_stream(self, prompt: str, user_id: str, conversation_id: str = None) -> str:
+    def generate_response_stream(self, prompt: str, user_id: str, conversation_id: str = None) -> Generator[str]:
+        system_messages = [{"role": "system", "content": self.system_prompt}]
         messages = self.get_conversation(user_id)
-        if not messages:
-            messages = [{"role": "system", "content": self.system_prompt}]
-        messages.append({"role": "user", "content": prompt})
-        stream = self.completions.generate_response(messages, model=self.model, stream=True)
+        user_message = [{"role": "user", "content": prompt}]
+        self.memory.add_messages_to_conversation(user_message, user_id, self.name, conversation_id)
+        stream = self.completions.generate_response(system_messages + messages, model=self.model, stream=True)
         response = ""
         for chunk in stream:
             yield chunk
             response += chunk
-        messages.append({"role": "assistant", "content": response})
-        self.memory.save_conversation(messages, user_id, self.name, conversation_id)
+        message = [{"role": "assistant", "content": response}]
+        self.memory.add_messages_to_conversation(message, user_id, self.name, conversation_id)
         return response

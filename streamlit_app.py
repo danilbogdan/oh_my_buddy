@@ -4,7 +4,7 @@ import requests
 from datetime import datetime
 
 # Set the URL of the Django app view
-app_host = os.getenv('PROMPT_API_HOST', 'http://localhost:8000')
+app_host = os.getenv('PROMPT_API_HOST', 'http://127.0.0.1:8000/')
 auth_api = app_host + "/auth/token/login/"
 chat_api = app_host + "/chatbot/prompt/"
 create_user_api = app_host + "/auth/users/"

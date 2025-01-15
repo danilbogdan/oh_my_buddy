@@ -8,7 +8,7 @@ class MemoryProviderInterface(ABC):
         pass
 
     @abstractmethod
-    def save_conversation(self, data: list[dict], user_id: str, agent_id: str, conversation_id: str) -> None:
+    def add_messages_to_conversation(self, message: list[dict], user_id: str, agent_id: str, conversation_id: str) -> None:
         pass
 
     @abstractmethod

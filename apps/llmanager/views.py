@@ -1,6 +1,7 @@
 import json
 import logging
 
+from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -9,7 +10,7 @@ from aimanager.agent.builder import LLMAgentBuilder
 from apps.llmanager.repositories.conversation import ConversationRepository
 from apps.llmanager.repositories.provider_config import ConfigRepository
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('django')
 
 
 class ChatbotPromptView(APIView):
@@ -44,7 +45,7 @@ class ChatbotPromptView(APIView):
             model = ConfigRepository.get_model()
             provider = ConfigRepository.get_provider()
             agent = LLMAgentBuilder.build(agent_name=agent, provider=provider, model=model)
-            conversation = agent.get_conversation(user_id, system=False)
+            conversation = agent.get_conversation(user_id)
 
             return Response(conversation, status=status.HTTP_200_OK)
         except Exception as e:

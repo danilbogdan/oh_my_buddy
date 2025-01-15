@@ -15,7 +15,7 @@ class RedisMemoryProvider(MemoryProviderInterface):
         redis_url = kwargs.get("redis_url") or os.getenv("REDIS_URL", "redis://localhost:6379/0")
         self.client = redis.StrictRedis.from_url(redis_url)
 
-    def save_conversation(self, data: list[dict], user_id: str, agent_id: str, conversation_id: str) -> None:
+    def add_messages_to_conversation(self, data: list[dict], user_id: str, agent_id: str, conversation_id: str) -> None:
         key = f"{conversation_id}:{user_id}:{agent_id}:conversation"
         json_data = [json.dumps(item) for item in data]
         self.client.rpush(key, *json_data)
