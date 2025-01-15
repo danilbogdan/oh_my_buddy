@@ -1,6 +1,30 @@
-# from django.utils.translation import gettext_lazy as _
-# from django.db import models
-# from solo.models import SingletonModel
+from django.utils.translation import gettext_lazy as _
+from django.db import models
+from django.contrib.auth import get_user_model
+from solo.models import SingletonModel
+
+
+User = get_user_model()
+
+
+class DefaultConfig(SingletonModel):
+    model = models.CharField(max_length=255, default="gpt-4o-mini")
+    provider = models.CharField(max_length=255, default="openai")
+    agent = models.CharField(max_length=255, default="base")
+
+
+class Conversation(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    title = models.CharField(max_length=255)
+    metadata = models.JSONField()
+
+    class Meta:
+        verbose_name = _("Conversation")
+        verbose_name_plural = _("Conversations")
+
+    def __str__(self):
+        return f"Conversation {self.id} for User {self.user.username}"
+
 
 
 # class LLModel(models.Model):
@@ -27,19 +51,6 @@
 
 #     def __str__(self):
 #         return self.name
-
-
-# class Thread(models.Model):
-#     assistant = models.ForeignKey(Assistant, on_delete=models.CASCADE)
-#     metadata = models.JSONField()
-
-#     class Meta:
-#         verbose_name = _("Thread")
-#         verbose_name_plural = _("Threads")
-
-#     def __str__(self):
-#         return f"Thread {self.id} for Assistant {self.assistant.name}"
-
 
 # class Message(models.Model):
 #     thread = models.ForeignKey(Thread, on_delete=models.CASCADE)

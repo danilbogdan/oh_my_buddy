@@ -8,13 +8,13 @@ class MemoryProviderInterface(ABC):
         pass
 
     @abstractmethod
-    def save_conversation(self, data: list[dict], user_id: str, agent_id: str) -> None:
+    def save_conversation(self, data: list[dict], user_id: str, agent_id: str, conversation_id: str) -> None:
         pass
 
     @abstractmethod
-    def get_conversation(self, user_id: str, agent_id: str) -> list[dict]:
+    def get_conversation(self, user_id: str, agent_id: str, conversation_id: str) -> list[dict]:
         pass
 
     @abstractmethod
-    def delete_conversation(self, user_id: str, agent_id: str) -> dict:
+    def delete_conversation(self, user_id: str, agent_id: str, conversation_id: str) -> dict:
         pass

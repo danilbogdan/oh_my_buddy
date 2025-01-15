@@ -12,5 +12,5 @@ class CompletionProviderInterface(ABC):
         pass
 
     @abstractmethod
-    def generate_response(self, prompt: str, stream: bool = False) -> str:
+    def generate_response(self, messages: list = None, model: str = None, stream: bool = False) -> str:
         pass
