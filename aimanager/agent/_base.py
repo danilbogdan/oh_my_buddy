@@ -30,25 +30,25 @@ class BaseAgent(AIAgentInterface):
         conversation = self.memory.get_conversation(user_id, self.name, conversation_id)
         return conversation or []
 
-    def clear_conversation(self, user_id: str, conversation_id: str = None) -> dict:
+    def clear_conversation(self, user_id: str, conversation_id: str = None) -> bool:
         return self.memory.delete_conversation(user_id, self.name, conversation_id)
 
     def generate_response(self, prompt: str, user_id: str, conversation_id: str = None) -> str:
         system_messages = [{"role": "system", "content": self.system_prompt}]
-        messages = self.get_conversation(user_id)
+        messages = self.get_conversation(user_id, conversation_id)
         user_message = [{"role": "user", "content": prompt}]
         self.memory.add_messages_to_conversation(user_message, user_id, self.name, conversation_id)
-        response = self.completions.generate_response(system_messages + messages, model=self.model)
+        response = self.completions.generate_response(system_messages + messages + user_message, model=self.model)
         message = [{"role": "assistant", "content": response}]
         self.memory.add_messages_to_conversation(message, user_id, self.name, conversation_id)
         return response
 
     def generate_response_stream(self, prompt: str, user_id: str, conversation_id: str = None) -> Generator[str]:
         system_messages = [{"role": "system", "content": self.system_prompt}]
-        messages = self.get_conversation(user_id)
+        messages = self.get_conversation(user_id, conversation_id)
         user_message = [{"role": "user", "content": prompt}]
         self.memory.add_messages_to_conversation(user_message, user_id, self.name, conversation_id)
-        stream = self.completions.generate_response(system_messages + messages, model=self.model, stream=True)
+        stream = self.completions.generate_response(system_messages + messages + user_message, model=self.model, stream=True)
         response = ""
         for chunk in stream:
             yield chunk

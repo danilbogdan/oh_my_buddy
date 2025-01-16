@@ -9,13 +9,14 @@ from django.http import StreamingHttpResponse
 from aimanager.agent.builder import LLMAgentBuilder
 from apps.llmanager.repositories.conversation import ConversationRepository
 from apps.llmanager.repositories.provider_config import ConfigRepository
+from apps.llmanager.serializers import ConversationSerializer
 
 logger = logging.getLogger('django')
 
 
 class ChatbotPromptView(APIView):
 
-    def post(self, request):
+    def post(self, request, conversation_id=None):
         try:
             data = request.data
             prompt = data.get("prompt")
@@ -28,8 +29,11 @@ class ChatbotPromptView(APIView):
             model = ConfigRepository.get_model()
             provider = ConfigRepository.get_provider()
             agent = LLMAgentBuilder.build(agent_name=agent, provider=provider, model=model)
-            response_generator = agent.generate_response_stream(prompt, user_id)
-            response = StreamingHttpResponse(response_generator, content_type="text/event-stream")
+            conversation = ConversationRepository.get(conversation_id)
+            if not conversation.title:
+                ConversationRepository.update_title(conversation_id, prompt[:20])
+            response_generator = agent.generate_response_stream(prompt, user_id, conversation_id)
+            response = StreamingHttpResponse(response_generator, content_type="text/event-stream; charset=utf-8")
             response["Cache-Control"] = "no-cache"
             return response
         except json.JSONDecodeError:
@@ -38,28 +42,51 @@ class ChatbotPromptView(APIView):
             logger.error('error', exc_info=e)
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def get(self, request):
+    def get(self, request, conversation_id=None):
         try:
             user_id = request.user.id
             agent = ConfigRepository.get_agent()
             model = ConfigRepository.get_model()
             provider = ConfigRepository.get_provider()
             agent = LLMAgentBuilder.build(agent_name=agent, provider=provider, model=model)
-            conversation = agent.get_conversation(user_id)
+            conversation = agent.get_conversation(user_id, conversation_id)
 
             return Response(conversation, status=status.HTTP_200_OK)
         except Exception as e:
             logger.error('error', exc_info=e)
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-    def delete(self, request):
+    def delete(self, request, conversation_id=None):
         try:
             user_id = request.user.id
 
-            agent = LLMAgentBuilder.build(agent_name="base", provider="openrouter")
-            agent.clear_conversation(user_id)
-
+            agent = ConfigRepository.get_agent()
+            model = ConfigRepository.get_model()
+            provider = ConfigRepository.get_provider()
+            agent = LLMAgentBuilder.build(agent_name=agent, provider=provider, model=model)
+            agent.clear_conversation(user_id, conversation_id)
+            ConversationRepository.delete(conversation_id)
             return Response({"message": "Conversation cleared"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            logger.error('error', exc_info=e)
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class ConversationView(APIView):
+    def post(self, request):
+        try:
+            user_id = request.user.id
+            conversation = ConversationRepository.create(user_id)
+            return Response(ConversationSerializer(conversation).data, status=status.HTTP_201_CREATED)
+        except Exception as e:
+            logger.error('error', exc_info=e)
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    def get(self, request):
+        try:
+            user_id = request.user.id
+            conversations = ConversationRepository.get_user_conversations(user_id)
+            return Response(ConversationSerializer(conversations, many=True).data, status=status.HTTP_200_OK)
         except Exception as e:
             logger.error('error', exc_info=e)
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

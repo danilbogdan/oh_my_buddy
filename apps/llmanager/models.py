@@ -15,8 +15,8 @@ class DefaultConfig(SingletonModel):
 
 class Conversation(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    title = models.CharField(max_length=255)
-    metadata = models.JSONField()
+    title = models.CharField(max_length=255, null=True, blank=True)
+    metadata = models.JSONField(null=True, blank=True)
 
     class Meta:
         verbose_name = _("Conversation")
