@@ -9,7 +9,7 @@ class AIAgentInterface(ABC):
         self.init_agent(*args, **kwargs)
 
     @abstractmethod
-    def init_agent(self, instructions: str, name: str, tools: list, model: str) -> dict:
+    def init_agent(self, instructions: str, name: str, tools: list, model: str, *args, **kwargs) -> dict:
         pass
 
     @abstractmethod

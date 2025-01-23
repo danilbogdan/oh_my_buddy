@@ -24,6 +24,7 @@ class BaseAgent(AIAgentInterface):
     def init_agent(self, *args, **kwargs) -> dict:
         self.memory = MemoryProviderBuilder.build(self.memory_provider)
         self.completions = CompletionsClientBuilder.build(kwargs.get('provider') or self.model_provider)
+        self.system_prompt = kwargs.get('system_prompt') or self.system_prompt
         self.model = kwargs.get('model')
 
     def get_conversation(self, user_id: str, conversation_id: str = None) -> list[dict]:

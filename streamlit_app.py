@@ -4,11 +4,12 @@ import requests
 from datetime import datetime
 
 # Set the URL of the Django app view
-app_host = os.getenv('PROMPT_API_HOST', 'http://127.0.0.1:8000/')
+app_host = os.getenv("PROMPT_API_HOST", "http://127.0.0.1:8000/")
 auth_api = app_host + "/auth/token/login/"
 create_user_api = app_host + "/auth/users/"
 delete_user_api = app_host + "/auth/users/me/"
 conversation_api = app_host + "/chatbot/conversation/"
+agents_api = app_host + "/chatbot/agents/"
 
 st.set_page_config("Buddy - AI Assistant", "🤖", layout="wide")
 
@@ -27,9 +28,7 @@ if not st.session_state["authenticated"]:
             submit_button = st.form_submit_button(label="Login")
 
         if submit_button:
-            auth_response = requests.post(
-                auth_api, data={"username": username, "password": password}
-            )
+            auth_response = requests.post(auth_api, data={"username": username, "password": password})
 
             if auth_response.status_code == 200:
                 st.session_state["authenticated"] = True
@@ -40,7 +39,7 @@ if not st.session_state["authenticated"]:
                 st.rerun()
             else:
                 st.error("Invalid username or password")
-    
+
     with tab2:
         with st.form(key="create_user_form"):
             new_username = st.text_input("New Username")
@@ -48,11 +47,8 @@ if not st.session_state["authenticated"]:
             create_button = st.form_submit_button(label="Create User")
 
         if create_button:
-            create_response = requests.post(
-                create_user_api,
-                data={"username": new_username, "password": new_password}
-            )
-            
+            create_response = requests.post(create_user_api, data={"username": new_username, "password": new_password})
+
             if create_response.status_code == 201:
                 st.success("User created successfully! You can now login.")
             else:
@@ -71,30 +67,28 @@ if st.session_state["authenticated"]:
                 st.session_state["authenticated"] = False
                 st.success("Logged out successfully")
                 st.rerun()
-        
+
         with col2:
             if st.button("Delete Account", type="primary", use_container_width=True):
-                st.session_state['show_delete_confirm'] = True
+                st.session_state["show_delete_confirm"] = True
 
         # Show delete confirmation form
-        if st.session_state.get('show_delete_confirm', False):
+        if st.session_state.get("show_delete_confirm", False):
             st.warning("⚠️ This action cannot be undone!")
-            
+
             with st.form("delete_account_form"):
                 current_password = st.text_input("Confirm your password", type="password")
                 confirm_delete = st.form_submit_button("Confirm Delete", use_container_width=True)
-            
+
             # Cancel button outside the form
             if st.button("Cancel", use_container_width=True):
-                st.session_state['show_delete_confirm'] = False
+                st.session_state["show_delete_confirm"] = False
                 st.rerun()
-                
+
             if confirm_delete:
                 headers = {"Authorization": f'Token {st.session_state["token"]}'}
                 delete_response = requests.delete(
-                    delete_user_api,
-                    headers=headers,
-                    json={"current_password": current_password}
+                    delete_user_api, headers=headers, json={"current_password": current_password}
                 )
 
                 if delete_response.status_code in [204, 200]:
@@ -125,28 +119,24 @@ if st.session_state["authenticated"]:
         # Rest of the sidebar code remains the same
         headers = {"Authorization": f'Token {st.session_state["token"]}'}
         conv_response = requests.get(conversation_api, headers=headers)
-        
+
         if conv_response.status_code == 200:
             conversations = conv_response.json()
-            
+
             for conv in conversations:
                 col1, col2, col3 = st.columns([3, 1, 1])
                 with col1:
                     # Show conversation title with click handling
-                    if st.button(
-                        conv["title"] or "New Chat",
-                        key=f"conv_{conv['id']}",
-                        use_container_width=True
-                    ):
+                    if st.button(conv["title"] or "New Chat", key=f"conv_{conv['id']}", use_container_width=True):
                         st.session_state["current_conversation"] = conv
                         st.session_state["conversation"] = []  # Clear current messages
                         st.rerun()
-                
+
                 with col2:
                     # Rename conversation
                     if st.button("✏️", key=f"rename_{conv['id']}", use_container_width=True):
                         st.session_state[f"rename_conv_{conv['id']}"] = True
-                
+
                 with col3:
                     # Delete conversation
                     if st.button("🗑️", key=f"delete_{conv['id']}", use_container_width=True):
@@ -165,11 +155,7 @@ if st.session_state["authenticated"]:
                         with col1:
                             if st.form_submit_button("Save", use_container_width=True):
                                 update_url = f"{conversation_api}{conv['id']}/"
-                                update_response = requests.patch(
-                                    update_url,
-                                    headers=headers,
-                                    json={"title": new_title}
-                                )
+                                update_response = requests.patch(update_url, headers=headers, json={"title": new_title})
                                 if update_response.status_code == 200:
                                     st.session_state[f"rename_conv_{conv['id']}"] = False
                                     st.rerun()
@@ -183,8 +169,25 @@ if st.session_state["authenticated"]:
         st.info("Select a conversation from the sidebar or create a new one")
     else:
         current_conv = st.session_state["current_conversation"]
+
+        # Add agent selector
+        headers = {"Authorization": f'Token {st.session_state["token"]}'}
+        agents_response = requests.get(agents_api, headers=headers)
+
+        if agents_response.status_code == 200:
+            agents = agents_response.json()
+            agent_options = {a["name"]: a["id"] for a in agents}
+            selected_agent = st.selectbox(
+                "Select Agent",
+                options=list(agent_options.keys()),
+                index=0 if agent_options else None,
+            )
+
+            if selected_agent and "current_agent_id" not in st.session_state:
+                st.session_state["current_agent_id"] = agent_options[selected_agent]
+
         st.subheader(current_conv["title"] or "New Chat")
-        
+
         # Fetch conversation history
         conv_url = f"{conversation_api}{current_conv['id']}/"
         history_response = requests.get(conv_url, headers=headers)
@@ -202,15 +205,16 @@ if st.session_state["authenticated"]:
             with st.chat_message("user"):
                 st.markdown(prompt)
             st.session_state["conversation"].append({"role": "user", "content": prompt})
-            
+
             response = requests.post(
                 conv_url,
-                json={"prompt": prompt},
+                json={"prompt": prompt, "agent_id": st.session_state.get("current_agent_id")},
                 headers=headers,
-                stream=True
+                stream=True,
             )
 
             if response.status_code == 200:
+
                 def iter_content():
                     chatbot_response = ""
                     temp_response = b""
@@ -222,9 +226,8 @@ if st.session_state["authenticated"]:
                             temp_response = b""
                         except UnicodeDecodeError:
                             pass
-                    st.session_state["conversation"].append(
-                        {"role": "chatbot", "content": chatbot_response}
-                    )
+                    st.session_state["conversation"].append({"role": "chatbot", "content": chatbot_response})
+
                 with st.chat_message("assistant"):
                     st.write_stream(iter_content())
             else:
