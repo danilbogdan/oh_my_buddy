@@ -176,15 +176,21 @@ if st.session_state["authenticated"]:
 
         if agents_response.status_code == 200:
             agents = agents_response.json()
-            agent_options = {a["name"]: a["id"] for a in agents}
+            # Add Base Agent as first option
+            agent_options = {"Base Agent": None}
+            agent_options.update({a["name"]: a["id"] for a in agents})
+            
             selected_agent = st.selectbox(
                 "Select Agent",
                 options=list(agent_options.keys()),
-                index=0 if agent_options else None,
+                index=0,  # Default to Base Agent
             )
 
-            if selected_agent and "current_agent_id" not in st.session_state:
+            # Only set agent_id if not Base Agent
+            if selected_agent != "Base Agent":
                 st.session_state["current_agent_id"] = agent_options[selected_agent]
+            else:
+                st.session_state["current_agent_id"] = None
 
         st.subheader(current_conv["title"] or "New Chat")
 
@@ -205,10 +211,14 @@ if st.session_state["authenticated"]:
             with st.chat_message("user"):
                 st.markdown(prompt)
             st.session_state["conversation"].append({"role": "user", "content": prompt})
-
+            
+            request_data = {"prompt": prompt}
+            if st.session_state.get("current_agent_id") is not None:
+                request_data["agent_id"] = st.session_state["current_agent_id"]
+            
             response = requests.post(
                 conv_url,
-                json={"prompt": prompt, "agent_id": st.session_state.get("current_agent_id")},
+                json=request_data,
                 headers=headers,
                 stream=True,
             )
