@@ -4,10 +4,8 @@ from typing import TYPE_CHECKING
 import requests
 from django.conf import settings
 from django.utils import timezone
-from telegram import Update
+from telegram import Update, constants
 from telegram.ext import Application
-
-from main.settings import telegram
 
 from .models import TelegramBot
 
@@ -43,5 +41,5 @@ def log_conversation(chat_id: int, message: str):
 async def parse_update(body, token):
     application = Application.builder().token(token).build()
     update = Update.de_json(json.loads(body), application.bot)
-    await application.bot.send_chat_action(chat_id=update.message.chat.id, action=telegram.ChatAction.TYPING)
+    await application.bot.send_chat_action(chat_id=update.message.chat.id, action=constants.ChatAction.TYPING)
     return update
