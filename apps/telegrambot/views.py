@@ -1,9 +1,9 @@
 import logging
-from django.http import HttpRequest, JsonResponse
-from django.views import View
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
 
+from django.http import HttpRequest, JsonResponse
+from django.utils.decorators import method_decorator
+from django.views import View
+from django.views.decorators.csrf import csrf_exempt
 
 from aimanager.agent.builder import AsyncLLMAgentBuilder
 from apps.llmanager.repositories.agent import AgentRepository
@@ -19,7 +19,6 @@ class WebhookView(View):
     # TODO: possibly, use python telegram bot queue or process_update
     # https://github.com/python-telegram-bot/python-telegram-bot/wiki/Webhooks#custom-solution
     async def post(self, request, bot_id, user_id):
-        logger.info(f"Start processing: {id}")
         try:
             await handle_update(request, bot_id, user_id)
         except Exception as e:
