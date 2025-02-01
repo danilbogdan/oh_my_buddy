@@ -2,7 +2,6 @@ import json
 from typing import TYPE_CHECKING
 
 import requests
-from django.conf import settings
 from django.utils import timezone
 from telegram import Update, constants
 from telegram.ext import Application
@@ -14,9 +13,7 @@ if TYPE_CHECKING:
 
 
 def build_webhook_url(request: "HttpRequest", bot: "TelegramBot"):
-    return request.build_absolute_uri(
-        f"{settings.FORCE_SCRIPT_NAME}/telegrambot/webhook/{bot.user_id}/{bot.id}/"
-    ).replace("http://", "https://")
+    return request.build_absolute_uri(f"telegrambot/webhook/{bot.user_id}/{bot.id}/").replace("http://", "https://")
 
 
 def register_webhook(bot_token: str, webhook_url: str):
