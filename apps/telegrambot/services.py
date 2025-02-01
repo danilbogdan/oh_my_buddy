@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 
 def build_webhook_url(request: "HttpRequest", bot: "TelegramBot"):
-    return request.build_absolute_uri(f"telegrambot/webhook/{bot.user_id}/{bot.id}/").replace("http://", "https://")
+    return f"{request.get_host()}/telegrambot/webhook/{bot.user_id}/{bot.id}/".replace("http://", "https://")
 
 
 def register_webhook(bot_token: str, webhook_url: str):
