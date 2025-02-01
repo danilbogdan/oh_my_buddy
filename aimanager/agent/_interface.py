@@ -3,7 +3,6 @@ from typing import Generator
 
 
 class AIAgentInterface(ABC):
-
     def __init__(self, *args, **kwargs):
         super().__init__()
         self.init_agent(*args, **kwargs)
@@ -30,7 +29,6 @@ class AIAgentInterface(ABC):
 
 
 class AsyncAIAgentInterface(ABC):
-
     def __init__(self, *args, **kwargs):
         super().__init__()
         self.init_agent(*args, **kwargs)

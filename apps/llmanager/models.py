@@ -44,7 +44,6 @@ class Conversation(models.Model):
         return f"Conversation {self.id} for User {self.user.username}"
 
 
-
 # class LLModel(models.Model):
 #     name = models.CharField(max_length=255)
 #     description = models.TextField()

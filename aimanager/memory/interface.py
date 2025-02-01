@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 
 
 class MemoryProviderInterface(ABC):
-
     @abstractmethod
     def init_memory(self, *args, **kwargs) -> dict:
         pass
@@ -23,7 +22,6 @@ class MemoryProviderInterface(ABC):
 
 
 class AsyncMemoryProviderInterface(ABC):
-
     @abstractmethod
     def init_memory(self, *args, **kwargs):
         pass

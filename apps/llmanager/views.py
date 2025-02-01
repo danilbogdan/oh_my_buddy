@@ -16,7 +16,6 @@ logger = logging.getLogger("django")
 
 
 class ChatbotPromptView(APIView):
-
     def post(self, request, conversation_id=None):
         try:
             data = request.data

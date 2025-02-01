@@ -5,10 +5,10 @@ from .models import Agent, Conversation
 class ConversationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Conversation
-        fields = ['id', 'user', 'title', 'metadata']
+        fields = ["id", "user", "title", "metadata"]
 
 
 class AgentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Agent
-        fields = ['id', 'name', 'description']
+        fields = ["id", "name", "description"]

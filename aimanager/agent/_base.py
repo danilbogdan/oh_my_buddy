@@ -2,7 +2,6 @@ import os
 import logging
 from typing import AsyncGenerator, Generator
 
-from django.conf import settings
 from ._interface import AIAgentInterface, AsyncAIAgentInterface
 from aimanager.memory.builder import AsyncMemoryProviderBuilder, MemoryProviderBuilder
 from aimanager.completions.builder import AsyncCompletionsClientBuilder, CompletionsClientBuilder

@@ -1,7 +1,6 @@
 import os
 import streamlit as st
 import requests
-from datetime import datetime
 
 # Set the URL of the Django app view
 app_host = os.getenv("PROMPT_API_HOST", "http://127.0.0.1:8000/")
@@ -86,7 +85,7 @@ if st.session_state["authenticated"]:
                 st.rerun()
 
             if confirm_delete:
-                headers = {"Authorization": f'Token {st.session_state["token"]}'}
+                headers = {"Authorization": f"Token {st.session_state['token']}"}
                 delete_response = requests.delete(
                     delete_user_api, headers=headers, json={"current_password": current_password}
                 )
@@ -106,7 +105,7 @@ if st.session_state["authenticated"]:
 
         # Create new conversation button with better visibility
         if st.button("➕ New Conversation", type="primary", use_container_width=True):
-            headers = {"Authorization": f'Token {st.session_state["token"]}'}
+            headers = {"Authorization": f"Token {st.session_state['token']}"}
             response = requests.post(conversation_api, headers=headers)
             if response.status_code == 201:
                 if "current_conversation" not in st.session_state:
@@ -117,7 +116,7 @@ if st.session_state["authenticated"]:
         st.markdown("<br>", unsafe_allow_html=True)
 
         # Rest of the sidebar code remains the same
-        headers = {"Authorization": f'Token {st.session_state["token"]}'}
+        headers = {"Authorization": f"Token {st.session_state['token']}"}
         conv_response = requests.get(conversation_api, headers=headers)
 
         if conv_response.status_code == 200:
@@ -171,7 +170,7 @@ if st.session_state["authenticated"]:
         current_conv = st.session_state["current_conversation"]
 
         # Add agent selector
-        headers = {"Authorization": f'Token {st.session_state["token"]}'}
+        headers = {"Authorization": f"Token {st.session_state['token']}"}
         agents_response = requests.get(agents_api, headers=headers)
 
         if agents_response.status_code == 200:
@@ -179,7 +178,7 @@ if st.session_state["authenticated"]:
             # Add Base Agent as first option
             agent_options = {"Base Agent": None}
             agent_options.update({a["name"]: a["id"] for a in agents})
-            
+
             selected_agent = st.selectbox(
                 "Select Agent",
                 options=list(agent_options.keys()),
@@ -211,11 +210,11 @@ if st.session_state["authenticated"]:
             with st.chat_message("user"):
                 st.markdown(prompt)
             st.session_state["conversation"].append({"role": "user", "content": prompt})
-            
+
             request_data = {"prompt": prompt}
             if st.session_state.get("current_agent_id") is not None:
                 request_data["agent_id"] = st.session_state["current_agent_id"]
-            
+
             response = requests.post(
                 conv_url,
                 json=request_data,

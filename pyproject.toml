@@ -1,0 +1,11 @@
+[project]
+requires-python = ">=3.10"
+
+[tool.ruff]
+line-length = 120
+
+# Enable Pyflakes and pycodestyle rules
+lint.select = ["E", "F"]
+
+# Never enforce line length violations (`E501`)
+lint.ignore = ["E501"]

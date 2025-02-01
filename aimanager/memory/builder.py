@@ -4,9 +4,8 @@ from .interface import MemoryProviderInterface, AsyncMemoryProviderInterface
 
 
 class MemoryProviderBuilder:
-
     @staticmethod
-    def build(provider_name: str, *args, **kwargs) -> MemoryProviderInterface: 
+    def build(provider_name: str, *args, **kwargs) -> MemoryProviderInterface:
         if provider_name == "mem0":
             return Mem0MemoryProvider(*args, **kwargs)
         if provider_name == "redis":
@@ -16,7 +15,6 @@ class MemoryProviderBuilder:
 
 
 class AsyncMemoryProviderBuilder:
-
     @staticmethod
     def build(provider_name: str, *args, **kwargs) -> AsyncMemoryProviderInterface:
         return AIORedisMemoryProvider(*args, **kwargs)

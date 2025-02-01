@@ -1,1 +1,1 @@
-default_app_config = 'apps.llmanager.apps.LlmanagerConfig'
+default_app_config = "apps.llmanager.apps.LlmanagerConfig"

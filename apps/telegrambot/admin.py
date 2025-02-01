@@ -4,9 +4,14 @@ from apps.telegrambot.models import TelegramBot, Conversation, ConversationMessa
 from apps.telegrambot.services import register_webhook, build_webhook_url
 import requests
 
+
 class BotAdmin(admin.ModelAdmin):
     list_display = ("token", "name", "user", "is_active", "webhook_url")
-    search_fields = ("token", "name",)
+    search_fields = (
+        "token",
+        "name",
+    )
+    readonly_fields = ("webhook_url",)
     raw_id_fields = ("user",)
     actions = ["fetch_webhook_info"]
 
@@ -21,51 +26,42 @@ class BotAdmin(admin.ModelAdmin):
                     data = response.json()
                     if data.get("ok"):
                         info = data.get("result", {})
-                        self.message_user(request, f"Bot {obj.name} - URL: {info.get('url', 'Not set')}, Pending updates: {info.get('pending_update_count', 0)}", level=messages.SUCCESS)
+                        self.message_user(
+                            request,
+                            f"Bot {obj.name} - URL: {info.get('url', 'Not set')}, Pending updates: {info.get('pending_update_count', 0)}",
+                            level=messages.SUCCESS,
+                        )
                     else:
-                        self.message_user(request, f"Bot {obj.name} - Error: {data.get('description', 'Unknown error')}", level=messages.ERROR)
+                        self.message_user(
+                            request,
+                            f"Bot {obj.name} - Error: {data.get('description', 'Unknown error')}",
+                            level=messages.ERROR,
+                        )
                 else:
-                    self.message_user(request, f"Bot {obj.name} - HTTP Error: {response.status_code}", level=messages.ERROR)
+                    self.message_user(
+                        request, f"Bot {obj.name} - HTTP Error: {response.status_code}", level=messages.ERROR
+                    )
             except Exception as e:
-                self.message_user(request, f"Bot {obj.name} - Error fetching webhook info: {str(e)}", level=messages.ERROR)
+                self.message_user(
+                    request, f"Bot {obj.name} - Error fetching webhook info: {str(e)}", level=messages.ERROR
+                )
 
     fetch_webhook_info.short_description = "Fetch webhook info for selected bots"
 
     def save_model(self, request, obj, form, change):
-        previous_webhook_url = None
-        if change:
-            previous_obj = TelegramBot.objects.get(pk=obj.pk)
-            previous_webhook_url = previous_obj.webhook_url
-
         super().save_model(request, obj, form, change)
         obj.refresh_from_db()
-
-        if not obj.webhook_url or (previous_webhook_url and previous_webhook_url != obj.webhook_url):
-            try:
-                webhook_url = build_webhook_url(request, obj)
-                result = register_webhook(obj.token, webhook_url)
-                if result.get("ok"):
-                    messages.success(request, f"Webhook successfully registered for bot {obj.name}")
-                    obj.webhook_url = webhook_url
-                    obj.save(update_fields=["webhook_url"])
-                else:
-                    messages.error(request, f"Failed to register webhook: {result.get('description')}")
-            except Exception as e:
-                messages.error(request, f"Error registering webhook: {str(e)}")
-        super().save_model(request, obj, form, change)
-        obj.refresh_from_db()
-        if not obj.webhook_url:  # Only on creation
-            try:
-                webhook_url = build_webhook_url(request, obj)
-                result = register_webhook(obj.token, webhook_url)
-                if result.get("ok"):
-                    messages.success(request, f"Webhook successfully registered for bot {obj.name}")
-                    obj.webhook_url = webhook_url
-                    obj.save(update_fields=["webhook_url"])
-                else:
-                    messages.error(request, f"Failed to register webhook: {result.get('description')}")
-            except Exception as e:
-                messages.error(request, f"Error registering webhook: {str(e)}")
+        try:
+            webhook_url = build_webhook_url(request, obj)
+            result = register_webhook(obj.token, webhook_url)
+            if result.get("ok"):
+                messages.success(request, f"Webhook successfully registered for bot {obj.name}")
+                obj.webhook_url = webhook_url
+                obj.save(update_fields=["webhook_url"])
+            else:
+                messages.error(request, f"Failed to register webhook: {result.get('description')}")
+        except Exception as e:
+            messages.error(request, f"Error registering webhook: {str(e)}")
 
 
 class MessageInline(admin.TabularInline):

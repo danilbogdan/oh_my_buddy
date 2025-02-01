@@ -4,11 +4,9 @@ import json
 
 from .interface import AsyncMemoryProviderInterface, MemoryProviderInterface
 import redis.asyncio as aredis
-import asyncio
 
 
 class RedisMemoryProvider(MemoryProviderInterface):
-
     def __init__(self, *args, **kwargs):
         self.client = None
         self.init_memory(*args, **kwargs)
@@ -26,14 +24,13 @@ class RedisMemoryProvider(MemoryProviderInterface):
         key = f"{conversation_id}:{user_id}:{agent_id}:conversation"
         data = self.client.lrange(key, 0, -1)
         return [json.loads(item) for item in data]
-    
+
     def delete_conversation(self, user_id: str, agent_id: str, conversation_id: str) -> dict:
         key = f"{conversation_id}:{user_id}:{agent_id}:conversation"
         self.client.delete(key)
 
 
 class AIORedisMemoryProvider(AsyncMemoryProviderInterface):
-
     def __init__(self, *args, **kwargs):
         self.client = None
         self.init_memory(*args, **kwargs)
@@ -43,7 +40,9 @@ class AIORedisMemoryProvider(AsyncMemoryProviderInterface):
         pool = aredis.ConnectionPool.from_url(redis_url)
         self.client = aredis.Redis.from_pool(pool)
 
-    async def async_add_messages_to_conversation(self, data: list[dict], user_id: str, agent_id: str, conversation_id: str) -> None:
+    async def async_add_messages_to_conversation(
+        self, data: list[dict], user_id: str, agent_id: str, conversation_id: str
+    ) -> None:
         key = f"{conversation_id}:{user_id}:{agent_id}:conversation"
         json_data = [json.dumps(item) for item in data]
         await self.client.rpush(key, *json_data)

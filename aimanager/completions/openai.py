@@ -1,5 +1,4 @@
 import os
-import backoff
 from openai import AsyncOpenAI, OpenAI
 
 from .custom_openai_api_provider import CustomOpenAIApiProvider, AsyncCustomOpenAIApiProvider

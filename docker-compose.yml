@@ -1,3 +1,5 @@
+version: '3.8'
+
 volumes:
   postgres_data: {}
 
@@ -35,7 +37,8 @@ services:
       - redis
     env_file:
       - .env
-    command: python3 manage.py runserver 0.0.0.0:8000
+    command: gunicorn -c gunicorn_config.py main.asgi:application
+    # command: python manage.py runserver 0.0.0.0:8000
     ports:
       - 8000:8000
 

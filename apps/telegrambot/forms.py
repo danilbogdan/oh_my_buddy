@@ -14,6 +14,6 @@ class BotTokenForm(forms.ModelForm):
 
     def clean_webhook_url(self):
         url = self.cleaned_data.get("webhook_url")
-        if not url.startswith('https://'):
+        if not url.startswith("https://"):
             raise forms.ValidationError("Webhook URL must use HTTPS protocol")
         return url

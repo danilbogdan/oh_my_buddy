@@ -5,16 +5,15 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('llmanager', '0003_agent_conversation_agent'),
-        ('telegrambot', '0001_initial'),
+        ("llmanager", "0003_agent_conversation_agent"),
+        ("telegrambot", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='telegrambot',
-            name='agent',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='llmanager.agent'),
+            model_name="telegrambot",
+            name="agent",
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to="llmanager.agent"),
         ),
     ]
