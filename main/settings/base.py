@@ -137,10 +137,11 @@ USE_I18N = True
 
 USE_TZ = True
 
+LOGIN_URL = FORCE_SCRIPT_NAME + 'login/'
+LOGOUT_URL = FORCE_SCRIPT_NAME + 'logout/'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
-
 STATIC_URL = env.str("STASTIC_URL", "/src/")
 STATIC_ROOT = "src/"
 
