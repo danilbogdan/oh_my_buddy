@@ -1,14 +1,24 @@
-from ._interface import AIAgentInterface
-from ._base import BaseAgent
+from ._interface import AIAgentInterface, AsyncAIAgentInterface
+from ._base import BaseAgent, BaseAsyncAgent
 
 
 class LLMAgentBuilder:
     @staticmethod
-    def build(agent_name: str, agent_instruction: str = None, *args, **kwargs) -> AIAgentInterface:
+    def build(agent_name: str, *args, **kwargs) -> AIAgentInterface:
         if agent_name:
             for agent in [BaseAgent]:
                 if agent.name == agent_name:
                     return agent(*args, **kwargs)
         else:
-            if agent_instruction is None:
-                raise ValueError("Agent name or instruction is required.")
+            return BaseAgent(*args, **kwargs)
+
+
+class AsyncLLMAgentBuilder:
+    @staticmethod
+    def build(agent_name: str, *args, **kwargs) -> AsyncAIAgentInterface:
+        if agent_name:
+            for agent in [BaseAsyncAgent]:
+                if agent.name == agent_name:
+                    return agent(*args, **kwargs)
+        else:
+            return BaseAsyncAgent(*args, **kwargs)

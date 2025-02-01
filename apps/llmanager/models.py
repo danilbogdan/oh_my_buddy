@@ -17,7 +17,7 @@ class Agent(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     instructions = models.TextField()
-    model = models.CharField(max_length=255, default="gpt-4-mini")
+    model = models.CharField(max_length=255, default="gpt-4o-mini")
     provider = models.CharField(max_length=255, default="openai")
     metadata = models.JSONField(null=True, blank=True)
     is_active = models.BooleanField(default=True)

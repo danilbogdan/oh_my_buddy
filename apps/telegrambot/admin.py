@@ -7,7 +7,6 @@ import requests
 class BotAdmin(admin.ModelAdmin):
     list_display = ("token", "name", "user", "is_active", "webhook_url")
     search_fields = ("token", "name",)
-    readonly_fields = ("webhook_url",)
     raw_id_fields = ("user",)
     actions = ["fetch_webhook_info"]
 
@@ -33,6 +32,26 @@ class BotAdmin(admin.ModelAdmin):
     fetch_webhook_info.short_description = "Fetch webhook info for selected bots"
 
     def save_model(self, request, obj, form, change):
+        previous_webhook_url = None
+        if change:
+            previous_obj = TelegramBot.objects.get(pk=obj.pk)
+            previous_webhook_url = previous_obj.webhook_url
+
+        super().save_model(request, obj, form, change)
+        obj.refresh_from_db()
+
+        if not obj.webhook_url or (previous_webhook_url and previous_webhook_url != obj.webhook_url):
+            try:
+                webhook_url = build_webhook_url(request, obj)
+                result = register_webhook(obj.token, webhook_url)
+                if result.get("ok"):
+                    messages.success(request, f"Webhook successfully registered for bot {obj.name}")
+                    obj.webhook_url = webhook_url
+                    obj.save(update_fields=["webhook_url"])
+                else:
+                    messages.error(request, f"Failed to register webhook: {result.get('description')}")
+            except Exception as e:
+                messages.error(request, f"Error registering webhook: {str(e)}")
         super().save_model(request, obj, form, change)
         obj.refresh_from_db()
         if not obj.webhook_url:  # Only on creation

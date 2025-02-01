@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=255)),
                 ('description', models.TextField(blank=True)),
                 ('instructions', models.TextField()),
-                ('model', models.CharField(default='gpt-4-mini', max_length=255)),
+                ('model', models.CharField(default='gpt-4o-mini', max_length=255)),
                 ('provider', models.CharField(default='openai', max_length=255)),
                 ('metadata', models.JSONField(blank=True, null=True)),
                 ('is_active', models.BooleanField(default=True)),

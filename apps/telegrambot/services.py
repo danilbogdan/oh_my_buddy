@@ -33,8 +33,7 @@ def log_conversation(chat_id: int, message: str):
     print(f"User {chat_id}: {message} at {timezone.now()}")
 
 
-async def parse_update(body, bot_id):
-    bot_model = await TelegramBot.objects.aget(id=bot_id)
-    application = Application.builder().token(bot_model.token).build()
+async def parse_update(body, token):
+    application = Application.builder().token(token).build()
     update = Update.de_json(json.loads(body), application.bot)
     return update

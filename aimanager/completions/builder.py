@@ -1,8 +1,8 @@
 from .lmstudio import LMStudioProvider
-from .openai import OpenAIProvider
-from .custom_openai_api_provider import CustomOpenAIApiProvider
+from .openai import OpenAIProvider, AsyncOpenAIProvider
+from .custom_openai_api_provider import CustomOpenAIApiProvider, AsyncCustomOpenAIApiProvider
 from .openrouter import OpenRouterProvider
-from ._interface import CompletionProviderInterface
+from ._interface import AsyncCompletionProviderInterface, CompletionProviderInterface
 
 
 class CompletionsClientBuilder:
@@ -12,3 +12,12 @@ class CompletionsClientBuilder:
             if provider.name == provider_name:
                 return provider()
         raise ValueError(f"Unknown provider: {provider_name}")
+
+
+class AsyncCompletionsClientBuilder:
+    @staticmethod
+    def build(provider_name: str) -> AsyncCompletionProviderInterface:
+        for provider in [AsyncOpenAIProvider, AsyncCustomOpenAIApiProvider]:
+            if provider.name == provider_name:
+                return provider()
+        return AsyncOpenAIProvider()
