@@ -7,6 +7,8 @@ from django.utils import timezone
 from telegram import Update
 from telegram.ext import Application
 
+from main.settings import telegram
+
 from .models import TelegramBot
 
 if TYPE_CHECKING:
@@ -41,4 +43,5 @@ def log_conversation(chat_id: int, message: str):
 async def parse_update(body, token):
     application = Application.builder().token(token).build()
     update = Update.de_json(json.loads(body), application.bot)
+    await application.bot.send_chat_action(chat_id=update.message.chat.id, action=telegram.ChatAction.TYPING)
     return update
