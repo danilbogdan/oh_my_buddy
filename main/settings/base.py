@@ -26,7 +26,6 @@ environ.Env.read_env(BASE_DIR / ".env")
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env.str("SECRET_KEY")
-FORCE_SCRIPT_NAME = env.str("FORCE_SCRIPT_NAME", "")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool("DEBUG", default=True)
 
@@ -136,9 +135,6 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 
 USE_TZ = True
-
-LOGIN_URL = FORCE_SCRIPT_NAME + 'login/'
-LOGOUT_URL = FORCE_SCRIPT_NAME + 'logout/'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
