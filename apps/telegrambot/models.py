@@ -26,7 +26,7 @@ class ConversationMessage(models.Model):
 
 class Conversation(models.Model):
     bot = models.ForeignKey(TelegramBot, on_delete=models.CASCADE, related_name="conversations")
-    chat_id = models.IntegerField(db_index=True)
+    chat_id = models.CharField(max_length=50, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
