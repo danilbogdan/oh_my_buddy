@@ -21,7 +21,7 @@ class ConversationMessage(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Conversation with {self.user.username} on {self.created_at}"
+        return f"Conversation from {self.author} on {self.created_at}"
 
 
 class Conversation(models.Model):
