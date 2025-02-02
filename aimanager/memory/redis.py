@@ -1,13 +1,10 @@
 import json
-import logging
 import os
 
 import redis
 import redis.asyncio as aredis
 
 from .interface import AsyncMemoryProviderInterface, MemoryProviderInterface
-
-logger = logging.getLogger("django")
 
 
 class RedisMemoryProvider(MemoryProviderInterface):
@@ -48,16 +45,13 @@ class AIORedisMemoryProvider(AsyncMemoryProviderInterface):
         self, data: list[dict], user_id: str, agent_id: str, conversation_id: str
     ) -> None:
         key = f"{conversation_id}:{user_id}:{agent_id}:conversation"
-        logger.info(f"Put: {key}")
         json_data = [json.dumps(item) for item in data]
         await self.client.rpush(key, *json_data)
 
     async def async_get_conversation(self, user_id: str, agent_id: str, conversation_id: str) -> list[dict]:
         key = f"{conversation_id}:{user_id}:{agent_id}:conversation"
-        logger.info(f"Get: {key}")
         data = await self.client.lrange(key, 0, -1)
         res = [json.loads(item) for item in data]
-        logger.info(f"Data: {res}")
         return res
 
     async def async_delete_conversation(self, user_id: str, agent_id: str, conversation_id: str) -> dict:
