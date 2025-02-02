@@ -45,4 +45,5 @@ async def handle_update(request: HttpRequest, bot_id: int, user_id: int) -> None
     try:
         await update.message.reply_text(response, parse_mode=constants.ParseMode.HTML)
     except tgerror.BadRequest:
+        logger.info("Cant parse as HTML, try simple response...")
         await update.message.reply_text(response)
