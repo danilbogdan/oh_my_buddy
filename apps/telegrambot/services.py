@@ -1,4 +1,5 @@
 import json
+import logging
 from typing import TYPE_CHECKING, Union
 
 import requests
@@ -9,6 +10,9 @@ from .models import Conversation, ConversationMessage, TelegramBot
 
 if TYPE_CHECKING:
     from django.http import HttpRequest
+
+
+logger = logging.getLogger("django")
 
 
 def build_webhook_url(request: "HttpRequest", bot: "TelegramBot"):
@@ -35,6 +39,7 @@ async def log_conversation(bot_id: int, chat_id: Union[str, int], message: str, 
 
 async def parse_update(body, token):
     application = Application.builder().token(token).build()
+    logger.info(body)
     update = Update.de_json(json.loads(body), application.bot)
     await application.bot.send_chat_action(chat_id=update.message.chat.id, action=constants.ChatAction.TYPING)
     return update
