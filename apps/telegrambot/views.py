@@ -43,9 +43,6 @@ async def handle_update(request: HttpRequest, bot_id: int, user_id: int) -> None
     if bot_model.log_conversation:
         await log_conversation(bot_model.id, update.message.chat.id, response, bot_model.name)
     try:
-        await update.message.reply_text(response, parse_mode=constants.ParseMode.MARKDOWN_V2)
+        await update.message.reply_text(response, parse_mode=constants.ParseMode.HTML)
     except tgerror.BadRequest:
-        try:
-            await update.message.reply_text(response, parse_mode=constants.ParseMode.MARKDOWN)
-        except tgerror.BadRequest:
-            await update.message.reply_text(response)
+        await update.message.reply_text(response)
