@@ -1,5 +1,5 @@
-from django.db import models
 from django.contrib.auth.models import User
+from django.db import models
 
 
 class TelegramBot(models.Model):
@@ -30,4 +30,4 @@ class Conversation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Conversation with {self.user.username} on {self.created_at}"
+        return f"Conversation in chat {self.chat_id} on {self.created_at}"
