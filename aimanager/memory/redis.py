@@ -48,14 +48,17 @@ class AIORedisMemoryProvider(AsyncMemoryProviderInterface):
         self, data: list[dict], user_id: str, agent_id: str, conversation_id: str
     ) -> None:
         key = f"{conversation_id}:{user_id}:{agent_id}:conversation"
-        logger.info(key, data)
+        logger.info(f"Put: {key}")
         json_data = [json.dumps(item) for item in data]
         await self.client.rpush(key, *json_data)
 
     async def async_get_conversation(self, user_id: str, agent_id: str, conversation_id: str) -> list[dict]:
         key = f"{conversation_id}:{user_id}:{agent_id}:conversation"
+        logger.info(f"Get: {key}")
         data = await self.client.lrange(key, 0, -1)
-        return [json.loads(item) for item in data]
+        res = [json.loads(item) for item in data]
+        logger.info(f"Data: {res}")
+        return res
 
     async def async_delete_conversation(self, user_id: str, agent_id: str, conversation_id: str) -> dict:
         key = f"{conversation_id}:{user_id}:{agent_id}:conversation"
