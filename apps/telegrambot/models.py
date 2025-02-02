@@ -9,6 +9,7 @@ class TelegramBot(models.Model):
     agent = models.ForeignKey("llmanager.Agent", null=True, on_delete=models.SET_NULL)
     is_active = models.BooleanField(default=True)
     webhook_url = models.URLField(max_length=255, help_text="URL where Telegram will send updates for this bot")
+    log_conversation = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name

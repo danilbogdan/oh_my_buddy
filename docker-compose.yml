@@ -44,7 +44,7 @@ services:
       driver: syslog
       options:
         syslog-address: ${LOGS}
-        tag: "app-async"
+        tag: "app"
 
   app-async:
     image: app
