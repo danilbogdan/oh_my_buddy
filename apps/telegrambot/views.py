@@ -4,7 +4,8 @@ from django.http import HttpRequest, JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-from telegram.constants import ParseMode
+from telegram import constants
+from telegram import error as tgerror
 
 from aimanager.agent.builder import AsyncLLMAgentBuilder
 from apps.llmanager.repositories.agent import AgentRepository
@@ -41,4 +42,10 @@ async def handle_update(request: HttpRequest, bot_id: int, user_id: int) -> None
     response = await agent.async_generate_response(update.message.text, update.message.chat.id, bot_model.id)
     if bot_model.log_conversation:
         await log_conversation(bot_model.id, update.message.chat.id, response, bot_model.name)
-    await update.message.reply_text(response, parse_mode=ParseMode.MARKDOWN_V2)
+    try:
+        await update.message.reply_text(response, parse_mode=constants.ParseMode.MARKDOWN_V2)
+    except tgerror.BadRequest:
+        try:
+            await update.message.reply_text(response, parse_mode=constants.ParseMode.MARKDOWN)
+        except tgerror.BadRequest:
+            await update.message.reply_text(response)
