@@ -15,7 +15,7 @@ click==8.1.8
 cryptography==44.0.0
 defusedxml==0.8.0rc2
 distro==1.9.0
-Django==5.1.4
+Django==5.1.5
 django-environ==0.11.2
 django-rest-framework==0.1.0
 django-solo==2.4.0
