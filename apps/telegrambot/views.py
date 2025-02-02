@@ -33,9 +33,9 @@ class WebhookView(View):
 async def handle_update(request: HttpRequest, bot_id: int, user_id: int) -> None:
     bot_model = await TelegramBot.objects.aget(id=bot_id)
     update = await parse_update(request.body, bot_model.token)
-    await log_conversation(bot_model, update.message.chat.id, update.message.text, "user")
+    await log_conversation(bot_model.id, update.message.chat.id, update.message.text, "user")
     model, provider, instructions = await AgentRepository.async_get_agent_params(bot_model.agent_id)
     agent = AsyncLLMAgentBuilder.build(agent_name="base", provider=provider, model=model, system_prompt=instructions)
     response = await agent.async_generate_response(update.message.text, user_id, update.message.chat.id)
-    await log_conversation(bot_model, update.message.chat.id, response, "bot")
+    await log_conversation(bot_model.id, update.message.chat.id, response, "bot")
     await update.message.reply_text(response)
