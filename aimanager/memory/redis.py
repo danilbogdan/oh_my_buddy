@@ -1,9 +1,13 @@
-import os
-import redis
 import json
+import logging
+import os
+
+import redis
+import redis.asyncio as aredis
 
 from .interface import AsyncMemoryProviderInterface, MemoryProviderInterface
-import redis.asyncio as aredis
+
+logger = logging.getLogger("django")
 
 
 class RedisMemoryProvider(MemoryProviderInterface):
@@ -44,6 +48,7 @@ class AIORedisMemoryProvider(AsyncMemoryProviderInterface):
         self, data: list[dict], user_id: str, agent_id: str, conversation_id: str
     ) -> None:
         key = f"{conversation_id}:{user_id}:{agent_id}:conversation"
+        logger.info(key, data)
         json_data = [json.dumps(item) for item in data]
         await self.client.rpush(key, *json_data)
 

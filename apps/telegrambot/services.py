@@ -1,12 +1,11 @@
 import json
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
 
 import requests
-from django.utils import timezone
 from telegram import Update, constants
 from telegram.ext import Application
 
-from .models import TelegramBot
+from .models import Conversation, ConversationMessage, TelegramBot
 
 if TYPE_CHECKING:
     from django.http import HttpRequest
@@ -29,10 +28,9 @@ def send_message(chat_id: int, bot_token: str, message: str):
     return response.json()
 
 
-def log_conversation(chat_id: int, message: str):
-    # Placeholder for logging conversation to the database
-    # This function can be expanded to save messages to a model
-    print(f"User {chat_id}: {message} at {timezone.now()}")
+async def log_conversation(bot_id: int, chat_id: Union[str, int], message: str, author: str):
+    conversation, _ = await Conversation.objects.aget_or_create(chat_id=int(chat_id), bot_id=bot_id)
+    await ConversationMessage.objects.acreate(conversation=conversation, message=message, author=author)
 
 
 async def parse_update(body, token):

@@ -8,7 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from aimanager.agent.builder import AsyncLLMAgentBuilder
 from apps.llmanager.repositories.agent import AgentRepository
 from apps.telegrambot.models import TelegramBot
-from apps.telegrambot.services import parse_update
+from apps.telegrambot.services import log_conversation, parse_update
 
 logger = logging.getLogger("django")
 
@@ -33,9 +33,9 @@ class WebhookView(View):
 async def handle_update(request: HttpRequest, bot_id: int, user_id: int) -> None:
     bot_model = await TelegramBot.objects.aget(id=bot_id)
     update = await parse_update(request.body, bot_model.token)
-    # await log_conversation(update.message.text, bot_id, user_id)
+    await log_conversation(bot_model, update.message.chat.id, update.message.text, "user")
     model, provider, instructions = await AgentRepository.async_get_agent_params(bot_model.agent_id)
     agent = AsyncLLMAgentBuilder.build(agent_name="base", provider=provider, model=model, system_prompt=instructions)
     response = await agent.async_generate_response(update.message.text, user_id, update.message.chat.id)
-    # await log_conversation(response, bot_id, user_id)
+    await log_conversation(bot_model, update.message.chat.id, response, "bot")
     await update.message.reply_text(response)
