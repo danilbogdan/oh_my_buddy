@@ -8,6 +8,10 @@ class AIAgentInterface(ABC):
         self.init_agent(*args, **kwargs)
 
     @abstractmethod
+    def register_tool(tool: callable):
+        pass
+
+    @abstractmethod
     def init_agent(self, instructions: str, name: str, tools: list, model: str, *args, **kwargs) -> dict:
         pass
 
@@ -32,6 +36,10 @@ class AsyncAIAgentInterface(ABC):
     def __init__(self, *args, **kwargs):
         super().__init__()
         self.init_agent(*args, **kwargs)
+
+    @abstractmethod
+    def register_tool(tool: callable):
+        pass
 
     @abstractmethod
     async def init_agent(self, instructions: str, name: str, tools: list, model: str, *args, **kwargs) -> dict:
