@@ -49,7 +49,7 @@ Expected output
     }
 }
 
-Use the function schemas strictly. For example, if you want to call `get_weather`, your response must look like the above.
+Use the function schemas strictly. For example, if you want to call `get_weather`, your response must contain only function schema and respons must be a valid json. It must not contain any text reply. Just function definition schema.
 If you decide that no function is required, simply provide your answer as text.
 
 The following functions are available for you:

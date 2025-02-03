@@ -1,8 +1,8 @@
-from django.contrib import admin
-from django.contrib import messages
-from apps.telegrambot.models import TelegramBot, Conversation, ConversationMessage
-from apps.telegrambot.services import register_webhook, build_webhook_url
 import requests
+from django.contrib import admin, messages
+
+from apps.telegrambot.models import Conversation, ConversationMessage, Lead, TelegramBot
+from apps.telegrambot.services import build_webhook_url, register_webhook
 
 
 class BotAdmin(admin.ModelAdmin):
@@ -80,3 +80,4 @@ class ConversationAdmin(admin.ModelAdmin):
 
 admin.site.register(TelegramBot, BotAdmin)
 admin.site.register(Conversation, ConversationAdmin)
+admin.site.register(Lead)

@@ -32,3 +32,21 @@ class Conversation(models.Model):
 
     def __str__(self):
         return f"Conversation in chat {self.chat_id} on {self.created_at}"
+
+
+class Lead(models.Model):
+    service_name = models.CharField(max_length=255, blank=True, null=True)
+    username = models.CharField(max_length=255, blank=True, null=True)
+    email = models.EmailField(max_length=255, blank=True, null=True)
+    phone_number = models.CharField(max_length=20, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    status = models.CharField(
+        max_length=50,
+        choices=[("new", "New"), ("contacted", "Contacted"), ("qualified", "Qualified"), ("lost", "Lost")],
+        default="new",
+    )
+    notes = models.TextField()
+
+    def __str__(self):
+        return f"{self.username} {self.email} {self.phone_number}"

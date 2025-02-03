@@ -5,7 +5,9 @@ import requests
 from telegram import Update, constants
 from telegram.ext import Application
 
-from .models import Conversation, ConversationMessage, TelegramBot
+from aimanager.tools.scheme import llm_tool
+
+from .models import Conversation, ConversationMessage, Lead, TelegramBot
 
 if TYPE_CHECKING:
     from django.http import HttpRequest
@@ -38,3 +40,26 @@ async def parse_update(body, token):
     update = Update.de_json(json.loads(body), application.bot)
     await application.bot.send_chat_action(chat_id=update.message.chat.id, action=constants.ChatAction.TYPING)
     return update
+
+
+@llm_tool
+async def create_lead(service_name: str, email: str, phone_number: str, notes: str, status: str) -> None:
+    """
+    Creates a lead record in the CRM system based on a conversation in chat.
+    Args:
+        service_name (str): The name of the service for which the lead is being created. Fill this field according to provided service and user interest
+        email (str): The email address of the lead. Ask user to provide it. If not provided - set null
+        phone_number (str): The phone number of the lead. Ask user to provide it. If not provided - set null
+        notes (str): Additional notes about the lead. You should deside by your own what to put here
+        status (str): The status of the lead. One of: 'New', 'Contacted', 'Qualified', 'Lost'. You should deside which to set. If user ready to go further - set Qualified. If user rejects - set Lost. If need contact - leave New.
+    Returns:
+        None
+    """
+    await Lead.objects.acreate(
+        service_name=service_name,
+        email=email,
+        phone_number=phone_number,
+        notes=notes,
+        status=status,
+    )
+    return "Lead created in CRM"
