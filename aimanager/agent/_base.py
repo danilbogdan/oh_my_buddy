@@ -131,7 +131,6 @@ class BaseAsyncAgent(AsyncAIAgentInterface):
             instruction += f"\n{prompts.FUNCTION_INSTRUCTION}"
             schemes = [tool.llm_schema for tool in self.tools_registry.values()]
             instruction += f"\n{json.dumps(schemes)}"
-        print(instruction)
         system_messages = [{"role": "system", "content": instruction}]
         conversation_history = await self.async_get_conversation(user_id, conversation_id)
         user_message = [{"role": "user", "content": prompt}]
