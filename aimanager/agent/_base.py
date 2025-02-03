@@ -46,15 +46,23 @@ class BaseAgent(AIAgentInterface):
         message = []
         while response["type"] == "function":
             result = invoker.trigger_function(response, self.tools_registry)
-            if inspect.iscoroutine(result):
-                result = asyncio.run(result)
             fname = response["name"]
-            message += [
-                {
-                    "role": "developer",
-                    "content": f"You successfully triggered a function {fname} and it returned: {result}",
-                }
-            ]
+            try:
+                if inspect.iscoroutine(result):
+                    result = asyncio.run(result)
+                message += [
+                    {
+                        "role": "developer",
+                        "content": f"You successfully triggered a function {fname} and it returned: {result}",
+                    }
+                ]
+            except Exception as e:
+                message += [
+                    {
+                        "role": "developer",
+                        "content": f"You tried to trigger function {fname} but excepthion was rised: {e}",
+                    }
+                ]
             response = self.completions.generate_response(conversation_list + message, model=self.model)
             response = invoker.parse_llm_response(response)
         return response["content"]
