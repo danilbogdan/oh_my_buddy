@@ -1,3 +1,5 @@
+version: '3.8'
+
 volumes:
   postgres_data: {}
 
@@ -35,9 +37,38 @@ services:
       - redis
     env_file:
       - .env
-    command: python3 manage.py runserver 0.0.0.0:8000
+    command: python manage.py runserver 0.0.0.0:8000
     ports:
       - 8000:8000
+    logging:
+      driver: syslog
+      options:
+        syslog-address: ${LOGS}
+        tag: "app"
+
+  app-async:
+    image: app
+    build:
+        context: .
+        dockerfile: docker/Dockerfile
+    restart: "unless-stopped"
+    working_dir: /app
+    volumes:
+      - ./:/app
+      - /tmp/:/tmp/
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - .env
+    command: gunicorn -c gunicorn_config.py main.asgi:application
+    ports:
+      - 8001:8001
+    logging:
+      driver: syslog
+      options:
+        syslog-address: ${LOGS}
+        tag: "app-async"
 
   frontend:
     image: app

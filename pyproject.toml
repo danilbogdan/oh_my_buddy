@@ -1,0 +1,11 @@
+[project]
+requires-python = ">=3.10"
+
+[tool.ruff]
+line-length = 120
+
+# Enable Pyflakes, pycodestyle rules, and import sorting
+lint.select = ["E", "F", "I"]
+
+# Never enforce line length violations (`E501`)
+lint.ignore = ["E501"]

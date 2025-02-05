@@ -1,7 +1,6 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
 from django.db.utils import IntegrityError
-from django.core.exceptions import ValidationError
 from ..models import Conversation, DefaultConfig
 
 
@@ -33,8 +32,8 @@ class DefaultConfigModelTest(TestCase):
         self.assertEqual(config.agent, "base")
 
     def test_singleton_behavior(self):
-        config1 = DefaultConfig.objects.create()
-        config2 = DefaultConfig.objects.create()
+        DefaultConfig.objects.create()
+        DefaultConfig.objects.create()
 
         # Should only have one instance
         self.assertEqual(DefaultConfig.objects.count(), 1)

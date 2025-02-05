@@ -6,7 +6,6 @@ from .interface import MemoryProviderInterface
 
 
 class Mem0MemoryProvider(MemoryProviderInterface):
-
     def __init__(self, *args, **kwargs):
         self.client = None
         self.init_memory(*args, **kwargs)

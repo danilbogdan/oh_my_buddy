@@ -5,32 +5,31 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('llmanager', '0002_alter_conversation_metadata_alter_conversation_title'),
+        ("llmanager", "0002_alter_conversation_metadata_alter_conversation_title"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Agent',
+            name="Agent",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255)),
-                ('description', models.TextField(blank=True)),
-                ('instructions', models.TextField()),
-                ('model', models.CharField(default='gpt-4-mini', max_length=255)),
-                ('provider', models.CharField(default='openai', max_length=255)),
-                ('metadata', models.JSONField(blank=True, null=True)),
-                ('is_active', models.BooleanField(default=True)),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
+                ("name", models.CharField(max_length=255)),
+                ("description", models.TextField(blank=True)),
+                ("instructions", models.TextField()),
+                ("model", models.CharField(default="gpt-4o-mini", max_length=255)),
+                ("provider", models.CharField(default="openai", max_length=255)),
+                ("metadata", models.JSONField(blank=True, null=True)),
+                ("is_active", models.BooleanField(default=True)),
             ],
             options={
-                'verbose_name': 'Agent',
-                'verbose_name_plural': 'Agents',
+                "verbose_name": "Agent",
+                "verbose_name_plural": "Agents",
             },
         ),
         migrations.AddField(
-            model_name='conversation',
-            name='agent',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to='llmanager.agent'),
+            model_name="conversation",
+            name="agent",
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to="llmanager.agent"),
         ),
     ]

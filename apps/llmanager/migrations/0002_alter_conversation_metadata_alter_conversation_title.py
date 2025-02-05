@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('llmanager', '0001_initial'),
+        ("llmanager", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='conversation',
-            name='metadata',
+            model_name="conversation",
+            name="metadata",
             field=models.JSONField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='conversation',
-            name='title',
+            model_name="conversation",
+            name="title",
             field=models.CharField(blank=True, max_length=255, null=True),
         ),
     ]

@@ -2,7 +2,6 @@ from apps.llmanager.models import DefaultConfig
 
 
 class ConfigRepository:
-
     @classmethod
     def get_default(cls):
         return DefaultConfig.get_solo()
