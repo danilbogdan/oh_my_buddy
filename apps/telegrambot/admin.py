@@ -1,6 +1,10 @@
 import requests
 from django.contrib import admin, messages
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
 
+from aimanager.agent.builder import LLMAgentBuilder
+from apps.llmanager.repositories.agent import AgentRepository
 from apps.telegrambot.models import Conversation, ConversationMessage, Lead, TelegramBot
 from apps.telegrambot.services import build_webhook_url, register_webhook, update_bot_properties
 
@@ -74,6 +78,17 @@ class MessageInline(admin.TabularInline):
     extra = 0
     readonly_fields = ("created_at",)
     fields = ("message", "author", "created_at")
+
+
+@receiver(pre_delete, sender=Conversation)
+def clear_conversation_memory(sender, instance, **kwargs):
+    try:
+        model, provider, _ = AgentRepository.get_agent_params(instance.bot.agent_id)
+        agent = LLMAgentBuilder.build(agent_name="base", provider=provider, model=model)
+        agent.clear_conversation(instance.chat_id, instance.bot.id)
+    except Exception as e:
+        # Log the error but don't prevent deletion
+        print(f"Error clearing conversation memory: {str(e)}")
 
 
 class ConversationAdmin(admin.ModelAdmin):

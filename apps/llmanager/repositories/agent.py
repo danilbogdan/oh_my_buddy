@@ -18,6 +18,11 @@ class AgentRepository:
         return Agent.objects.filter(is_active=True)
 
     @staticmethod
+    def get_agent_params(agent_id: int):
+        agent = Agent.objects.get(id=agent_id)
+        return agent.model, agent.provider, agent.instructions
+
+    @staticmethod
     async def async_get_agent_params(agent_id: int):
         agent = await Agent.objects.aget(id=agent_id)
         return agent.model, agent.provider, agent.instructions
