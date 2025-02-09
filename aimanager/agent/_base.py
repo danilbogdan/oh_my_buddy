@@ -141,6 +141,7 @@ class BaseAsyncAgent(AsyncAIAgentInterface):
         response = invoker.parse_llm_response(response)
         message = []
         while response["type"] == "function":
+            # TODO: possible infinite loop. To handle (bot created 10 records)
             result = invoker.trigger_function(response, self.tools_registry)
             fname = response["name"]
             try:

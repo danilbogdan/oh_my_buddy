@@ -10,7 +10,7 @@ from telegram import error as tgerror
 from aimanager.agent.builder import AsyncLLMAgentBuilder
 from apps.llmanager.repositories.agent import AgentRepository
 from apps.telegrambot.models import TelegramBot
-from apps.telegrambot.services import create_lead, log_conversation, parse_update
+from apps.telegrambot.services import create_lead, log_conversation, notify_manager, parse_update
 
 logger = logging.getLogger("django")
 
@@ -40,6 +40,7 @@ async def handle_update(request: HttpRequest, bot_id: int, user_id: int) -> None
     instructions += f"\n {bot_model.bot_specific_prompt}"
     agent = AsyncLLMAgentBuilder.build(agent_name="base", provider=provider, model=model, system_prompt=instructions)
     agent.register_tool(create_lead)
+    agent.register_tool(notify_manager)
     response = await agent.async_generate_response(update.message.text, update.message.chat.id, bot_model.id)
     await log_conversation(bot_model, update.message.chat.id, bot_model.name, response)
     try:
