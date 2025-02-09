@@ -10,6 +10,11 @@ class TelegramBot(models.Model):
     is_active = models.BooleanField(default=True)
     webhook_url = models.URLField(max_length=255, help_text="URL where Telegram will send updates for this bot")
     log_conversation = models.BooleanField(default=True)
+    description = models.TextField(blank=True, max_length=512, help_text="Bot description shown in Telegram")
+    short_description = models.CharField(max_length=120, blank=True, help_text="Short description for bot profile")
+    bot_specific_prompt = models.TextField(
+        blank=True, help_text="Prompt which will be added to extend agent prompt to be more user-specific"
+    )
 
     def __str__(self):
         return self.name

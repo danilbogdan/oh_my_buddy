@@ -63,3 +63,28 @@ async def create_lead(service_name: str, email: str, phone_number: str, notes: s
         status=status,
     )
     return "Lead created in CRM"
+
+
+def update_bot_properties(bot: TelegramBot):
+    """Update Telegram bot properties using Telegram Bot API"""
+    base_url = f"https://api.telegram.org/bot{bot.token}"
+
+    # Update bot commands
+    # requests.post(
+    #     f"{base_url}/setMyCommands",
+    #     json={
+    #         "commands": [
+    #             {"command": "start", "description": "Start the bot"},
+    #             {"command": "help", "description": "Show help message"},
+    #         ]
+    #     },
+    # )
+    # Update bot description and about
+    if bot.description:
+        requests.post(f"{base_url}/setMyDescription", json={"description": bot.description})
+    if bot.short_description:
+        requests.post(f"{base_url}/setMyShortDescription", json={"short_description": bot.short_description})
+    if bot.name:
+        requests.post(f"{base_url}/setMyName", json={"name": bot.name})
+
+    return True

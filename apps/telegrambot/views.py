@@ -39,6 +39,7 @@ async def handle_update(request: HttpRequest, bot_id: int, user_id: int) -> None
     if bot_model.log_conversation:
         await log_conversation(bot_model.id, update.message.chat.id, update.message.text, update.message.chat.username)
     model, provider, instructions = await AgentRepository.async_get_agent_params(bot_model.agent_id)
+    instructions += f"\n {bot_model.bot_specific_prompt}"
     agent = AsyncLLMAgentBuilder.build(agent_name="base", provider=provider, model=model, system_prompt=instructions)
     agent.register_tool(fetch_weather_async)
     agent.register_tool(create_lead)
