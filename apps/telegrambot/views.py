@@ -36,14 +36,14 @@ class WebhookView(View):
 async def handle_update(request: HttpRequest, bot_id: int, user_id: int) -> None:
     bot_model = await TelegramBot.objects.aget(id=bot_id)
     update = await parse_update(request.body, bot_model.token)
-    await log_conversation(bot_model, update, update.message.text)
+    await log_conversation(bot_model, update.message.chat.id, update.message.chat.username, update.message.text)
     model, provider, instructions = await AgentRepository.async_get_agent_params(bot_model.agent_id)
     instructions += f"\n {bot_model.bot_specific_prompt}"
     agent = AsyncLLMAgentBuilder.build(agent_name="base", provider=provider, model=model, system_prompt=instructions)
     agent.register_tool(fetch_weather_async)
     agent.register_tool(create_lead)
     response = await agent.async_generate_response(update.message.text, update.message.chat.id, bot_model.id)
-    await log_conversation(bot_model, update, response)
+    await log_conversation(bot_model, update.message.chat.id, bot_model.name, response)
     try:
         await update.message.reply_text(response, parse_mode=constants.ParseMode.HTML)
     except tgerror.BadRequest:

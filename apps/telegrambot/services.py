@@ -30,12 +30,10 @@ def send_message(chat_id: int, bot_token: str, message: str):
     return response.json()
 
 
-async def log_conversation(bot: TelegramBot, update: Update, message: str):
-    conversation, _ = await Conversation.objects.aget_or_create(chat_id=str(update.message.chat.id), bot_id=bot.id)
+async def log_conversation(bot: TelegramBot, chat_id: str, author: str, message: str):
+    conversation, _ = await Conversation.objects.aget_or_create(chat_id=str(chat_id), bot_id=bot.id)
     if bot.log_conversation:
-        await ConversationMessage.objects.acreate(
-            conversation=conversation, message=message, author=update.message.chat.username
-        )
+        await ConversationMessage.objects.acreate(conversation=conversation, message=message, author=author)
 
 
 async def parse_update(body, token):
