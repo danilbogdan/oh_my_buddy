@@ -48,7 +48,6 @@ class Lead(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     status = models.CharField(
         max_length=50,
-        choices=[("new", "New"), ("contacted", "Contacted"), ("qualified", "Qualified"), ("lost", "Lost")],
         default="new",
     )
     notes = models.TextField()

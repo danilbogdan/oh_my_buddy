@@ -8,7 +8,6 @@ from telegram import constants
 from telegram import error as tgerror
 
 from aimanager.agent.builder import AsyncLLMAgentBuilder
-from aimanager.tools.functions import fetch_weather_async
 from apps.llmanager.repositories.agent import AgentRepository
 from apps.telegrambot.models import TelegramBot
 from apps.telegrambot.services import create_lead, log_conversation, parse_update
@@ -40,7 +39,6 @@ async def handle_update(request: HttpRequest, bot_id: int, user_id: int) -> None
     model, provider, instructions = await AgentRepository.async_get_agent_params(bot_model.agent_id)
     instructions += f"\n {bot_model.bot_specific_prompt}"
     agent = AsyncLLMAgentBuilder.build(agent_name="base", provider=provider, model=model, system_prompt=instructions)
-    agent.register_tool(fetch_weather_async)
     agent.register_tool(create_lead)
     response = await agent.async_generate_response(update.message.text, update.message.chat.id, bot_model.id)
     await log_conversation(bot_model, update.message.chat.id, bot_model.name, response)
