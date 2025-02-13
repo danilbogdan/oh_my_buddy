@@ -1,16 +1,17 @@
 import requests
 from django.contrib import admin, messages
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
 
+from aimanager.agent.builder import LLMAgentBuilder
+from apps.llmanager.repositories.agent import AgentRepository
 from apps.telegrambot.models import Conversation, ConversationMessage, Lead, TelegramBot
-from apps.telegrambot.services import build_webhook_url, register_webhook
+from apps.telegrambot.services import build_webhook_url, register_webhook, update_bot_properties
 
 
 class BotAdmin(admin.ModelAdmin):
     list_display = ("token", "name", "user", "is_active", "webhook_url")
-    search_fields = (
-        "token",
-        "name",
-    )
+    search_fields = ("token", "name")
     readonly_fields = ("webhook_url",)
     raw_id_fields = ("user",)
     actions = ["fetch_webhook_info"]
@@ -52,16 +53,24 @@ class BotAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
         obj.refresh_from_db()
         try:
+            # Register webhook
             webhook_url = build_webhook_url(request, obj)
-            result = register_webhook(obj.token, webhook_url)
-            if result.get("ok"):
+            webhook_result = register_webhook(obj.token, webhook_url)
+            if webhook_result.get("ok"):
                 messages.success(request, f"Webhook successfully registered for bot {obj.name}")
                 obj.webhook_url = webhook_url
                 obj.save(update_fields=["webhook_url"])
             else:
-                messages.error(request, f"Failed to register webhook: {result.get('description')}")
+                messages.error(request, f"Failed to register webhook: {webhook_result.get('description')}")
+
+            # Update bot properties
+            if update_bot_properties(obj):
+                messages.success(request, f"Bot properties successfully updated for {obj.name}")
+            else:
+                messages.error(request, f"Failed to update bot properties for {obj.name}")
+
         except Exception as e:
-            messages.error(request, f"Error registering webhook: {str(e)}")
+            messages.error(request, f"Error updating bot: {str(e)}")
 
 
 class MessageInline(admin.TabularInline):
@@ -69,6 +78,17 @@ class MessageInline(admin.TabularInline):
     extra = 0
     readonly_fields = ("created_at",)
     fields = ("message", "author", "created_at")
+
+
+@receiver(pre_delete, sender=Conversation)
+def clear_conversation_memory(sender, instance, **kwargs):
+    try:
+        model, provider, _ = AgentRepository.get_agent_params(instance.bot.agent_id)
+        agent = LLMAgentBuilder.build(agent_name="base", provider=provider, model=model)
+        agent.clear_conversation(instance.chat_id, instance.bot.id)
+    except Exception as e:
+        # Log the error but don't prevent deletion
+        print(f"Error clearing conversation memory: {str(e)}")
 
 
 class ConversationAdmin(admin.ModelAdmin):

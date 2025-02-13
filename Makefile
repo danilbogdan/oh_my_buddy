@@ -1,19 +1,11 @@
 COMPOSE_CMD = $(shell if docker compose version > /dev/null 2>&1; then echo "docker compose"; else echo "docker-compose"; fi)
-COMPOSE_MANAGE_CMD = $(COMPOSE_CMD) run --rm backend python manage.py
-BRANCH_NAME := $(shell git rev-parse --abbrev-ref HEAD)
-PREPRUSH_TEST_BRANCHES := dev-1 dev-2 preprod
+COMPOSE_MANAGE_CMD = $(COMPOSE_CMD) -f docker-compose.local.yml run --rm app python manage.py
 
 up:
 	$(COMPOSE_CMD) up
 
 daemon:
 	$(COMPOSE_CMD) up -d
-
-start-chat:
-	$(COMPOSE_MANAGE_CMD) start_conversation
-
-start-bot:
-	$(COMPOSE_MANAGE_CMD) start_telegram_bot
 
 migrate:
 	$(COMPOSE_MANAGE_CMD) migrate
