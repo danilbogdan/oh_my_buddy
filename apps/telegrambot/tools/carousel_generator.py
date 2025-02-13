@@ -66,9 +66,14 @@ def create_image_with_lines(
     # Font for the signature (e.g., half the size of the main font)
     username_font = ImageFont.truetype(FONT_PATH, FONT_SIZE // 2)
 
-    # Draw text starting from the top left corner within the margins
+    # Calculate the total height of the text block
+    text_block_height = len(lines) * line_height
+
+    # Calculate the starting y position to center the text block vertically
+    y = (HEIGHT - text_block_height) // 2
+
+    # Draw text starting from the calculated y position within the margins
     x = margin_x
-    y = margin_y
     for line in lines:
         draw.text((x, y), line, fill=TEXT_COLOR, font=font, align="left")
         y += line_height
@@ -106,8 +111,8 @@ def generate_carousel(text, output_folder="output", return_buffer=False):
     content_width = WIDTH - 2 * MARGIN_X
     content_height = HEIGHT - 2 * MARGIN_Y
 
-    # Split text into lines so they do not exceed content_width
-    lines = wrap_text(text, font, content_width)
+    # Split text into paragraphs based on newlines
+    paragraphs = text.split("\n")
 
     # Create a temporary image to calculate line height
     dummy_img = Image.new("RGB", (1, 1))
@@ -122,8 +127,14 @@ def generate_carousel(text, output_folder="output", return_buffer=False):
     if max_lines_per_page < 1:
         max_lines_per_page = 1  # in case the margins are too large
 
-    # Split the list of lines into groups (pages)
-    pages = [lines[i : i + max_lines_per_page] for i in range(0, len(lines), max_lines_per_page)]
+    pages = []
+    for paragraph in paragraphs:
+        # Split paragraph into lines so they do not exceed content_width
+        lines = wrap_text(paragraph, font, content_width)
+        # Split the list of lines into groups (pages)
+        paragraph_pages = [lines[i : i + max_lines_per_page] for i in range(0, len(lines), max_lines_per_page)]
+        pages.extend(paragraph_pages)
+
     total_pages = len(pages)
 
     # Generate an image for each page
