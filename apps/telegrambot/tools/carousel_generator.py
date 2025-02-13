@@ -21,24 +21,31 @@ def wrap_text(text, font, max_width):
     Splits text into lines so that each line does not exceed max_width (in pixels).
     Iterates through words and assembles a line, measuring its width using the font.
     """
-    words = text.split()
+    paragraphs = text.split("\n")
     lines = []
-    current_line = ""
-    # Create a temporary image to measure text
     dummy_img = Image.new("RGB", (1, 1))
     draw = ImageDraw.Draw(dummy_img)
-    for word in words:
-        test_line = word if not current_line else current_line + " " + word
-        bbox = draw.textbbox((0, 0), test_line, font=font)
-        line_width = bbox[2] - bbox[0]
-        if line_width <= max_width:
-            current_line = test_line
-        else:
-            if current_line:
-                lines.append(current_line)
-            current_line = word
-    if current_line:
-        lines.append(current_line)
+
+    for paragraph in paragraphs:
+        words = paragraph.split()
+        current_line = ""
+        for word in words:
+            test_line = word if not current_line else current_line + " " + word
+            bbox = draw.textbbox((0, 0), test_line, font=font)
+            line_width = bbox[2] - bbox[0]
+            if line_width <= max_width:
+                current_line = test_line
+            else:
+                if current_line:
+                    lines.append(current_line)
+                current_line = word
+        if current_line:
+            lines.append(current_line)
+        lines.append("")  # Add an empty line to separate paragraphs
+
+    if lines and lines[-1] == "":
+        lines.pop()  # Remove the last empty line if it exists
+
     return lines
 
 
@@ -97,13 +104,13 @@ def create_image_with_lines(
     img.save(image_path)
 
 
-def generate_carousel(text, output_folder="output", return_buffer=False):
+def generate_carousel(text, output_folder="output", return_buffer=False, page_separator="---"):
     """
     Generates a carousel of images for Instagram:
     - First, the available area for text is calculated considering the margins.
     - Then the text is split into lines (using pixel width) with wrap_text.
     - The line height is determined (with a small line spacing).
-    - Lines are grouped into pages so that each page contains an equal number of lines.
+    - Lines are grouped into pages based on a special page separator.
     - An image is created for each page.
     """
     font = ImageFont.truetype(FONT_PATH, FONT_SIZE)
@@ -111,8 +118,8 @@ def generate_carousel(text, output_folder="output", return_buffer=False):
     content_width = WIDTH - 2 * MARGIN_X
     content_height = HEIGHT - 2 * MARGIN_Y
 
-    # Split text into paragraphs based on newlines
-    paragraphs = text.split("\n")
+    # Split text into pages based on the page separator
+    pages_text = text.split(page_separator)
 
     # Create a temporary image to calculate line height
     dummy_img = Image.new("RGB", (1, 1))
@@ -122,18 +129,23 @@ def generate_carousel(text, output_folder="output", return_buffer=False):
     # Add line spacing (e.g., 20%)
     line_height = int(base_line_height * 1.2)
 
-    # Determine how many lines fit on one page
-    max_lines_per_page = content_height // line_height
-    if max_lines_per_page < 1:
-        max_lines_per_page = 1  # in case the margins are too large
-
     pages = []
-    for paragraph in paragraphs:
-        # Split paragraph into lines so they do not exceed content_width
-        lines = wrap_text(paragraph, font, content_width)
-        # Split the list of lines into groups (pages)
-        paragraph_pages = [lines[i : i + max_lines_per_page] for i in range(0, len(lines), max_lines_per_page)]
-        pages.extend(paragraph_pages)
+    for page_text in pages_text:
+        # Split page text into lines so they do not exceed content_width
+        lines = wrap_text(page_text, font, content_width)
+
+        # Check if the lines fit into one page, otherwise split into multiple pages
+        current_page_lines = []
+        current_page_height = 0
+        for line in lines:
+            if current_page_height + line_height > content_height:
+                pages.append(current_page_lines)
+                current_page_lines = []
+                current_page_height = 0
+            current_page_lines.append(line)
+            current_page_height += line_height
+        if current_page_lines:
+            pages.append(current_page_lines)
 
     total_pages = len(pages)
 
