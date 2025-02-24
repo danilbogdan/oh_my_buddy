@@ -57,10 +57,16 @@ def wrap_text(text, font, max_width):
     draw = ImageDraw.Draw(dummy_img)
     current_offset = 0
 
-    for paragraph in paragraphs:
+    for i, paragraph in enumerate(paragraphs):
         words = paragraph.split()
         current_line = ""
         line_start_offset = current_offset
+
+        # Handle empty paragraphs (consecutive newlines)
+        if not words:
+            lines.append(("", current_offset))
+            current_offset += 1  # Count the newline character
+            continue
 
         for word in words:
             test_line = word if not current_line else current_line + " " + word
@@ -72,18 +78,19 @@ def wrap_text(text, font, max_width):
             else:
                 if current_line:
                     lines.append((current_line, line_start_offset))
-                    current_offset = line_start_offset + len(current_line) + 1
-                    line_start_offset = current_offset
+                    current_offset = line_start_offset + len(current_line)
+                    line_start_offset = current_offset + 1  # +1 for space
                     current_line = word
                 else:
                     current_line = word
 
         if current_line:
             lines.append((current_line, line_start_offset))
-            current_offset = line_start_offset + len(current_line) + 1
+            current_offset = line_start_offset + len(current_line)
 
-        # Add offset for the newline character
-        current_offset += 1
+        # Add newline offset except for the last paragraph
+        if i < len(paragraphs) - 1:
+            current_offset += 1
 
     return lines
 
@@ -280,5 +287,5 @@ if __name__ == "__main__":
         post_text = file.read()
     generate_carousel(
         post_text,
-        entities=[{"offset": 220, "length": 29, "type": "bold"}, {"offset": 100, "length": 29, "type": "italic"}],
+        entities=[{"offset": 220, "length": 29, "type": "bold"}, {"offset": 125, "length": 5, "type": "bold"}],
     )
