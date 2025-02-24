@@ -83,6 +83,6 @@ async def generate_cover_from_text(title, summary, token: str = None, chat_id: s
         None
     """
     application = Application.builder().token(token).build()
-    image = create_cover(title, summary, return_buffer=False)
+    image = create_cover(title, summary, return_buffer=True)
     image.seek(0)
     await application.bot.send_photo(chat_id=chat_id, photo=image)
