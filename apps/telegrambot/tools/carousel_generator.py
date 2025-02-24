@@ -4,16 +4,44 @@ from io import BytesIO
 from PIL import Image, ImageDraw, ImageFont
 
 # Image and font parameters
-WIDTH, HEIGHT = 1080, 1080  # Image size for Instagram
-FONT_PATH = os.path.join(os.path.dirname(__file__), "OpenSans-Light.ttf")  # Path to the font
-FONT_SIZE = 60
-TEXT_COLOR = "black"
-BG_COLOR = "white"
+WIDTH, HEIGHT = 1080, 1350  # Image size for Instagram
+FONT_PATH = os.path.join(os.path.dirname(__file__), "fonts/myfont.otf")  # Path to the font
+FONT_SIZE = 36
+TEXT_COLOR = "#eaeaea"
+BG_COLOR = "#0f3f41"
 USERNAME = "@progger_bob"
+DIAMOND_COLOR = "#151419"
+DIAMOND_SIZE = 1000
+LINE_HEIGHT_SCALE = 2
 
 # Aesthetic margins (padding)
-MARGIN_X = 100  # Left and right margin
+MARGIN_X = 150  # Left and right margin
 MARGIN_Y = 100  # Top and bottom margin
+
+# Shape parameters
+
+
+def draw_half_rhombus(draw, width, height, is_odd_page):
+    """
+    Draws half of a rhombus (diamond) on the side
+    """
+    center_y = 300 + height // 2
+    if is_odd_page:
+        # Right half of rhombus
+        points = [
+            (width, center_y - DIAMOND_SIZE // 2),
+            (width - DIAMOND_SIZE // 2, center_y),
+            (width, center_y + DIAMOND_SIZE // 2),
+        ]
+    else:
+        # Left half of rhombus
+        points = [
+            (0, center_y - DIAMOND_SIZE // 2),
+            (DIAMOND_SIZE // 2, center_y),
+            (0, center_y + DIAMOND_SIZE // 2),
+        ]
+
+    draw.polygon(points, fill=DIAMOND_COLOR)
 
 
 def wrap_text(text, font, max_width):
@@ -60,46 +88,47 @@ def create_image_with_lines(
     font=None,
     return_buffer=False,
 ):
-    """
-    Creates an image page by drawing the given list of lines with left alignment.
-    Also adds a signature with the username and page number in the bottom right corner.
-    Optionally returns the image as a base64 encoded string.
-    """
     os.makedirs(output_folder, exist_ok=True)
     img = Image.new("RGB", (WIDTH, HEIGHT), color=BG_COLOR)
     draw = ImageDraw.Draw(img)
+
+    # Draw shapes based on page number
+    is_odd_page = page_number % 2 == 1
+    draw_half_rhombus(draw, WIDTH, HEIGHT, is_odd_page)
+
     if font is None:
         font = ImageFont.truetype(FONT_PATH, FONT_SIZE)
-    # Font for the signature (e.g., half the size of the main font)
     username_font = ImageFont.truetype(FONT_PATH, FONT_SIZE // 2)
 
-    # Calculate the total height of the text block
+    draw = ImageDraw.Draw(img)
     text_block_height = len(lines) * line_height
-
-    # Calculate the starting y position to center the text block vertically
     y = (HEIGHT - text_block_height) // 2
-
-    # Draw text starting from the calculated y position within the margins
     x = margin_x
     for line in lines:
         draw.text((x, y), line, fill=TEXT_COLOR, font=font, align="left")
         y += line_height
 
-    # Form the signature in the bottom right corner within the margins
-    username_text = f"{USERNAME} • {page_number}/{total_pages}"
+    # Draw username at the top right
+    username_text = USERNAME
     bbox = draw.textbbox((0, 0), username_text, font=username_font)
     username_text_width = bbox[2] - bbox[0]
     username_text_height = bbox[3] - bbox[1]
     username_x = WIDTH - margin_x - username_text_width
-    username_y = HEIGHT - margin_y - username_text_height
+    username_y = margin_y
     draw.text((username_x, username_y), username_text, fill=TEXT_COLOR, font=username_font)
+    # Draw a line in the middle of the username height
+    line_y = username_y + username_text_height // 2
+    draw.line([(margin_x, line_y), (username_x - 10, line_y)], fill=TEXT_COLOR, width=1)
+
+    page_number_text = f"{page_number}/{total_pages}"
+    page_number_y = HEIGHT - margin_y - username_text_height
+    draw.text((WIDTH - margin_x, page_number_y), page_number_text, fill=TEXT_COLOR, font=username_font)
 
     if return_buffer:
         buffered = BytesIO()
         img.save(buffered, format="PNG")
         return buffered
 
-    # Save the image
     image_path = os.path.join(output_folder, f"post_{page_number}.png")
     img.save(image_path)
 
@@ -127,7 +156,7 @@ def generate_carousel(text, output_folder="output", return_buffer=False, page_se
     bbox = dummy_draw.textbbox((0, 0), "Ay", font=font)
     base_line_height = bbox[3] - bbox[1]
     # Add line spacing (e.g., 20%)
-    line_height = int(base_line_height * 1.2)
+    line_height = int(base_line_height * LINE_HEIGHT_SCALE)
 
     pages = []
     for page_text in pages_text:
