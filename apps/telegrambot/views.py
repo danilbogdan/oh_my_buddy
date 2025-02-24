@@ -43,7 +43,8 @@ async def handle_update(request: HttpRequest, bot_id: int, user_id: int) -> None
     agent.register_tool(create_lead)
     agent.register_tool(notify_manager)
     agent.register_tool(
-        generate_carousel_from_text, defaults={"chat_id": update.message.chat.id, "token": bot_model.token}
+        generate_carousel_from_text,
+        defaults={"chat_id": update.message.chat.id, "token": bot_model.toke, "entities": update.message.entities},
     )
     response = await agent.async_generate_response(update.message.text, update.message.chat.id, bot_model.id)
     await log_conversation(bot_model, update.message.chat.id, bot_model.name, response)

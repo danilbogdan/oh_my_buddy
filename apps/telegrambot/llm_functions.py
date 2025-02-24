@@ -52,7 +52,7 @@ async def notify_manager(service_name: str, email: str, phone_number: str, notes
 
 
 @llm_tool
-async def generate_carousel_from_text(text: str, token: str = None, chat_id: str = None):
+async def generate_carousel_from_text(text: str, entities: dict = None, token: str = None, chat_id: str = None):
     """
     This function generates Instagram carousel images from the provided text and sends them to a specified Telegram chat. It utilizes the Telegram bot API to send the generated images as photos to the chat.
     Args:
@@ -63,7 +63,7 @@ async def generate_carousel_from_text(text: str, token: str = None, chat_id: str
         None
     """
     application = Application.builder().token(token).build()
-    images = generate_carousel(text, return_buffer=True)
+    images = generate_carousel(text, entities=entities, return_buffer=True)
     for image in images:
         image.seek(0)
         await application.bot.send_photo(chat_id=chat_id, photo=image)
