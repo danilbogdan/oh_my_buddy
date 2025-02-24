@@ -223,16 +223,14 @@ def generate_carousel(text, entities=None, output_folder="output", return_buffer
     base_line_height = bbox[3] - bbox[1]
     line_height = int(base_line_height * LINE_HEIGHT_SCALE)
 
-    # Track global text offset and separator compensation
+    # Track global text offset
     current_offset = 0
-    separator_compensation = 0
     pages_with_offsets = []
 
     # Split text into pages and track offsets
     pages_text = text.split(page_separator)
-    for page_index, page_text in enumerate(pages_text):
-        # Adjust page start offset by removing cumulative separator lengths
-        page_start_offset = current_offset - separator_compensation
+    for page_text in pages_text:
+        page_start_offset = current_offset
         lines = wrap_text(page_text, font, content_width)
 
         # Check if lines fit into one page, otherwise split into multiple pages
@@ -252,9 +250,6 @@ def generate_carousel(text, entities=None, output_folder="output", return_buffer
 
         # Update global offset including the page separator
         current_offset += len(page_text) + len(page_separator)
-        # Increase separator compensation for next page
-        if page_index < len(pages_text) - 1:  # Don't add for the last page
-            separator_compensation += len(page_separator)
 
     total_pages = len(pages_with_offsets)
 
@@ -285,5 +280,5 @@ if __name__ == "__main__":
         post_text = file.read()
     generate_carousel(
         post_text,
-        entities=[{"offset": 0, "length": 5, "type": "bold"}, {"offset": 117, "length": 5, "type": "bold"}],
+        entities=[{"offset": 220, "length": 29, "type": "bold"}, {"offset": 100, "length": 29, "type": "italic"}],
     )
