@@ -3,6 +3,7 @@ from telegram.ext import Application
 from aimanager.tools.scheme import llm_tool
 from apps.telegrambot.models import Lead
 from apps.telegrambot.tools.carousel_generator import generate_carousel
+from apps.telegrambot.tools.cover_generator import create_cover
 
 
 @llm_tool
@@ -67,3 +68,21 @@ async def generate_carousel_from_text(text: str, entities: dict = None, token: s
     for image in images:
         image.seek(0)
         await application.bot.send_photo(chat_id=chat_id, photo=image)
+
+
+@llm_tool
+async def generate_cover_from_text(title, summary, token: str = None, chat_id: str = None):
+    """
+    This function generates cover image from the provided title and summary and sends it to a specified Telegram chat. It utilizes the Telegram bot API to send the generated images as photos to the chat.
+    Args:
+        title (str): Required: The text from which to generate the cover title.
+        summary (str): Required: The text from which to generate the cover summary.
+        token (str): Not Required: will be provided manually by application. The token for the Telegram bot to authenticate the API requests.
+        chat_id (str): Not Required: will be provided manually by application. The chat ID of the Telegram chat where the images will be sent.
+    Returns:
+        None
+    """
+    application = Application.builder().token(token).build()
+    image = create_cover(title, summary, return_buffer=False)
+    image.seek(0)
+    await application.bot.send_photo(chat_id=chat_id, photo=image)

@@ -9,7 +9,12 @@ from telegram import error as tgerror
 
 from aimanager.agent.builder import AsyncLLMAgentBuilder
 from apps.llmanager.repositories.agent import AgentRepository
-from apps.telegrambot.llm_functions import create_lead, generate_carousel_from_text, notify_manager
+from apps.telegrambot.llm_functions import (
+    create_lead,
+    generate_carousel_from_text,
+    generate_cover_from_text,
+    notify_manager,
+)
 from apps.telegrambot.models import TelegramBot
 from apps.telegrambot.services import log_conversation, parse_update
 
@@ -44,6 +49,10 @@ async def handle_update(request: HttpRequest, bot_id: int, user_id: int) -> None
     agent.register_tool(notify_manager)
     agent.register_tool(
         generate_carousel_from_text,
+        defaults={"chat_id": update.message.chat.id, "token": bot_model.token, "entities": update.message.entities},
+    )
+    agent.register_tool(
+        generate_cover_from_text,
         defaults={"chat_id": update.message.chat.id, "token": bot_model.token, "entities": update.message.entities},
     )
     response = await agent.async_generate_response(update.message.text, update.message.chat.id, bot_model.id)
