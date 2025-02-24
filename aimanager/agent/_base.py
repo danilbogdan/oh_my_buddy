@@ -44,7 +44,9 @@ class BaseAgent(AIAgentInterface):
     def _check_tools(self, response: str, conversation_list: list) -> dict:
         response = invoker.parse_llm_response(response)
         message = []
-        while response["type"] == "function":
+        attempts = 0
+        max_attempts = 3
+        while response["type"] == "function" and attempts < max_attempts:
             result = invoker.trigger_function(response, self.tools_registry)
             fname = response["name"]
             try:
@@ -60,11 +62,17 @@ class BaseAgent(AIAgentInterface):
                 message += [
                     {
                         "role": "developer",
-                        "content": f"You tried to trigger function {fname} but excepthion was rised: {e}",
+                        "content": f"You tried to trigger function {fname} but an exception was raised: {e}",
                     }
                 ]
+                logger.info("error", exc_info=e)
             response = self.completions.generate_response(conversation_list + message, model=self.model)
             response = invoker.parse_llm_response(response)
+            attempts += 1
+
+        if attempts == max_attempts and response["type"] == "function":
+            return f"Error: Failed to trigger function {response['name']} after {max_attempts} attempts."
+
         return response["content"]
 
     def register_tool(self, tool, defaults=None):
