@@ -40,5 +40,5 @@ def trigger_function(call_request: dict, functions_registry: dict):
     if func_name not in functions_registry:
         raise ValueError(f"Unknown function: {func_name}")
 
-    func = functions_registry[func_name]
-    return func(*args, **kwargs)
+    func, defaults = functions_registry[func_name]
+    return func(*args, **{**defaults, **kwargs})

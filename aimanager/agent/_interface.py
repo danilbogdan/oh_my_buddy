@@ -8,7 +8,7 @@ class AIAgentInterface(ABC):
         self.init_agent(*args, **kwargs)
 
     @abstractmethod
-    def register_tool(tool: callable):
+    def register_tool(tool: callable, defaults: dict = None):
         pass
 
     @abstractmethod
@@ -38,7 +38,7 @@ class AsyncAIAgentInterface(ABC):
         self.init_agent(*args, **kwargs)
 
     @abstractmethod
-    def register_tool(tool: callable):
+    def register_tool(tool: callable, defaults: dict = None):
         pass
 
     @abstractmethod

@@ -32,7 +32,7 @@ class BaseAgent(AIAgentInterface):
         instruction = self.system_prompt
         if self.tools_registry:
             instruction += f"\n{prompts.FUNCTION_INSTRUCTION}"
-            schemes = [tool.llm_schema for tool in self.tools_registry.values()]
+            schemes = [tool.llm_schema for tool, _ in self.tools_registry.values()]
             instruction += f"\n{json.dumps(schemes)}"
 
         system_messages = [{"role": "system", "content": instruction}]
@@ -67,10 +67,10 @@ class BaseAgent(AIAgentInterface):
             response = invoker.parse_llm_response(response)
         return response["content"]
 
-    def register_tool(self, tool):
+    def register_tool(self, tool, defaults=None):
         if not hasattr(tool, "llm_schema"):
             raise TypeError(f"Cant register tool {tool.__name__}: no scheme")
-        self.tools_registry[tool.__name__] = tool
+        self.tools_registry[tool.__name__] = tool, defaults
 
     def init_agent(self, *args, **kwargs) -> dict:
         self.memory = MemoryProviderBuilder.build(self.memory_provider)
@@ -129,7 +129,7 @@ class BaseAsyncAgent(AsyncAIAgentInterface):
         instruction = self.system_prompt
         if self.tools_registry:
             instruction += f"\n{prompts.FUNCTION_INSTRUCTION}"
-            schemes = [tool.llm_schema for tool in self.tools_registry.values()]
+            schemes = [tool.llm_schema for tool, _ in self.tools_registry.values()]
             instruction += f"\n{json.dumps(schemes)}"
         system_messages = [{"role": "system", "content": instruction}]
         conversation_history = await self.async_get_conversation(user_id, conversation_id)
@@ -160,14 +160,15 @@ class BaseAsyncAgent(AsyncAIAgentInterface):
                         "content": f"You tried to trigger function {fname} but excepthion was rised: {e}",
                     }
                 ]
+                print(message)
             response = await self.completions.async_generate_response(conversation_list + message, model=self.model)
             response = invoker.parse_llm_response(response)
         return response["content"]
 
-    def register_tool(self, tool):
+    def register_tool(self, tool, defaults=None):
         if not hasattr(tool, "llm_schema"):
             raise TypeError(f"Cant register tool {tool.__name__}: no scheme")
-        self.tools_registry[tool.__name__] = tool
+        self.tools_registry[tool.__name__] = tool, defaults or {}
 
     def init_agent(self, *args, **kwargs) -> dict:
         self.memory = AsyncMemoryProviderBuilder.build(self.memory_provider)
