@@ -41,7 +41,17 @@ class WebhookView(View):
 async def handle_update(request: HttpRequest, bot_id: int, user_id: int) -> None:
     bot_model = await TelegramBot.objects.aget(id=bot_id)
     update = await parse_update(request.body, bot_model.token)
-    await log_conversation(bot_model, update.message.chat.id, update.message.chat.username, update.message.text)
+    message = update.message.text or "empty message"
+    # check if there is media in the message
+    if update.message.photo:
+        logger.info("Media message received")
+        if bot_model.redirect_media_chat_id:
+            await update.message.forward(bot_model.redirect_media_chat_id)
+            message = "This is developer message. Photo provided, forwarded to manager."
+        else:
+            logger.info("Media message not redirected")
+            message = "This is developer message. Photo provided, but not redirected. Ask to contact manager"
+    await log_conversation(bot_model, update.message.chat.id, update.message.chat.username, message)
     model, provider, instructions = await AgentRepository.async_get_agent_params(bot_model.agent_id)
     instructions += f"\n {bot_model.bot_specific_prompt}"
     agent = AsyncLLMAgentBuilder.build(agent_name="base", provider=provider, model=model, system_prompt=instructions)
@@ -55,7 +65,7 @@ async def handle_update(request: HttpRequest, bot_id: int, user_id: int) -> None
         generate_cover_from_text,
         defaults={"chat_id": update.message.chat.id, "token": bot_model.token},
     )
-    response = await agent.async_generate_response(update.message.text, update.message.chat.id, bot_model.id)
+    response = await agent.async_generate_response(message, update.message.chat.id, bot_model.id)
     await log_conversation(bot_model, update.message.chat.id, bot_model.name, response)
     try:
         await update.message.reply_text(response, parse_mode=constants.ParseMode.HTML)

@@ -15,6 +15,9 @@ class TelegramBot(models.Model):
     bot_specific_prompt = models.TextField(
         blank=True, help_text="Prompt which will be added to extend agent prompt to be more user-specific"
     )
+    redirect_media_chat_id = models.CharField(
+        max_length=50, blank=True, null=True, help_text="Chat ID where media messages will be redirected"
+    )
 
     def __str__(self):
         return self.name
