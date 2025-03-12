@@ -43,7 +43,7 @@ class TelegramBot(models.Model):
     """
     parse_mode = models.CharField(
         max_length=50,
-        choices=[(tag.name, tag.value) for tag in ParseMode] + [(None, "None")],
+        choices=[(tag.value, tag.value) for tag in ParseMode] + [(None, "None")],
         null=True,
         blank=True,
         default=ParseMode.HTML.value,
