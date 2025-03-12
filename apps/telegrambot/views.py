@@ -46,10 +46,10 @@ async def handle_update(request: HttpRequest, bot_id: int, user_id: int) -> None
         logger.info("Media message received")
         if bot_model.redirect_media_chat_id:
             await update.message.forward(bot_model.redirect_media_chat_id)
-            message = "This is developer message. Photo provided, forwarded to manager."
+            message = "Photo provided successfully"
         else:
             logger.info("Media message not redirected")
-            message = "This is developer message. Photo provided, but not redirected. Ask to contact manager"
+            message = "Photo provided, but looks like you cant process it. So ask to text manager"
     await log_conversation(bot_model, update.message.chat.id, update.message.chat.username, message)
     model, provider, instructions = await AgentRepository.async_get_agent_params(bot_model.agent_id)
     instructions += f"\n {bot_model.bot_specific_prompt}"
