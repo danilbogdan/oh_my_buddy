@@ -16,6 +16,7 @@ from apps.telegrambot.llm_functions import (
 )
 from apps.telegrambot.models import TelegramBot
 from apps.telegrambot.services import log_conversation, parse_update
+from apps.telegrambot.utils import escape_markdown_message
 
 logger = logging.getLogger("django")
 
@@ -67,7 +68,7 @@ async def handle_update(request: HttpRequest, bot_id: int, user_id: int) -> None
     response = await agent.async_generate_response(message, update.message.chat.id, bot_model.id)
     await log_conversation(bot_model, update.message.chat.id, bot_model.name, response)
     try:
-        await update.message.reply_text(response, parse_mode=bot_model.parse_mode)
+        await update.message.reply_text(escape_markdown_message(response), parse_mode=bot_model.parse_mode)
     except tgerror.BadRequest as e:
         logger.info(f"Cant parse as {bot_model.parse_mode}, try simple response... ", exc_info=e)
         await update.message.reply_text(response)
