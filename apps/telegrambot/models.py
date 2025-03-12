@@ -45,6 +45,7 @@ class TelegramBot(models.Model):
         max_length=50,
         choices=[(tag.name, tag.value) for tag in ParseMode] + [(None, "None")],
         null=True,
+        blank=True,
         default=ParseMode.HTML.value,
     )
 
