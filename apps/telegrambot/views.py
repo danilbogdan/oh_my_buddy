@@ -72,6 +72,7 @@ async def handle_update(request: HttpRequest, bot_id: int, user_id: int) -> None
             response.replace("!", escape_markdown("!", 2))
             .replace("-", escape_markdown("-", 2))
             .replace(".", escape_markdown(".", 2))
+            .replace("+", escape_markdown("+", 2))
         )
         await update.message.reply_text(response, parse_mode=bot_model.parse_mode)
     except tgerror.BadRequest as e:
