@@ -67,6 +67,7 @@ async def handle_update(request: HttpRequest, bot_id: int, user_id: int) -> None
     response = await agent.async_generate_response(message, update.message.chat.id, bot_model.id)
     await log_conversation(bot_model, update.message.chat.id, bot_model.name, response)
     try:
+        print(response)
         await update.message.reply_text(response, parse_mode=bot_model.parse_mode)
     except tgerror.BadRequest:
         logger.info("Cant parse as HTML, try simple response...")
