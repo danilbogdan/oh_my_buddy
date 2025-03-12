@@ -4,7 +4,6 @@ from django.http import HttpRequest, JsonResponse
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-from telegram import constants
 from telegram import error as tgerror
 
 from aimanager.agent.builder import AsyncLLMAgentBuilder
@@ -68,7 +67,7 @@ async def handle_update(request: HttpRequest, bot_id: int, user_id: int) -> None
     response = await agent.async_generate_response(message, update.message.chat.id, bot_model.id)
     await log_conversation(bot_model, update.message.chat.id, bot_model.name, response)
     try:
-        await update.message.reply_text(response, parse_mode=constants.ParseMode.HTML)
+        await update.message.reply_text(response, parse_mode=bot_model.parse_mode)
     except tgerror.BadRequest:
         logger.info("Cant parse as HTML, try simple response...")
         await update.message.reply_text(response)
