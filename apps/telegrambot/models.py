@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.db import models
+from telegram.constants import ParseMode
 
 
 class TelegramBot(models.Model):
@@ -14,6 +15,38 @@ class TelegramBot(models.Model):
     short_description = models.CharField(max_length=120, blank=True, help_text="Short description for bot profile")
     bot_specific_prompt = models.TextField(
         blank=True, help_text="Prompt which will be added to extend agent prompt to be more user-specific"
+    )
+    redirect_media_chat_id = models.CharField(
+        max_length=50, blank=True, null=True, help_text="Chat ID where media messages will be redirected"
+    )
+    """
+    class ParseMode(StringEnum):
+        This enum contains the available parse modes. The enum
+        members of this enumeration are instances of :class:`str` and can be treated as such.
+
+        .. versionadded:: 20.0
+        
+
+        __slots__ = ()
+
+        MARKDOWN = "Markdown"
+        obj:`str`: Markdown parse mode.
+
+        Note:
+            :attr:`MARKDOWN` is a legacy mode, retained by Telegram for backward compatibility.
+            You should use :attr:`MARKDOWN_V2` instead.
+        
+        MARKDOWN_V2 = "MarkdownV2"
+        obj:`str`: Markdown parse mode version 2
+        HTML = "HTML"
+        obj:`str`: HTML parse mode
+    """
+    parse_mode = models.CharField(
+        max_length=50,
+        choices=[(tag.value, tag.value) for tag in ParseMode] + [(None, "None")],
+        null=True,
+        blank=True,
+        default=ParseMode.HTML.value,
     )
 
     def __str__(self):
