@@ -219,7 +219,7 @@ if st.session_state["authenticated"]:
                 conv_url,
                 json=request_data,
                 headers=headers,
-                stream=True,
+                # stream=True,
             )
 
             if response.status_code == 200:

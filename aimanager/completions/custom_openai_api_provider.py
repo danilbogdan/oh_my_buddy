@@ -28,13 +28,13 @@ class CustomOpenAIApiProvider(CompletionProviderInterface):
         self, messages: list = None, model: str = None, stream: bool = False
     ) -> Union[str, Generator]:
         response = self.client.chat.completions.create(model=model or self.model, messages=messages, stream=stream)
-        if not stream:
-            return response.choices[0].message.content
-        else:
-            for chunk in response:
-                content = chunk.choices[0].delta.content
-                if content is not None:
-                    yield content
+        # if not stream:
+        return response.choices[0].message.content
+        # else:
+        #     for chunk in response:
+        #         content = chunk.choices[0].delta.content
+        #         if content is not None:
+        #             yield content
 
 
 class AsyncCustomOpenAIApiProvider(AsyncCompletionProviderInterface):
