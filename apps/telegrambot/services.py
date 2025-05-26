@@ -69,7 +69,7 @@ async def create_lead(service_name: str, email: str, phone_number: str, notes: s
 @llm_tool
 async def notify_manager(service_name: str, email: str, phone_number: str, notes: str, status: str) -> None:
     """
-    This function is responsible for alerting the manager when a client is ready to proceed with a service. It triggers a notification based on the client’s interest and the service provided. This function ensures that the manager is immediately informed when a client expresses readiness for a deal or when the type of service.
+    This function is responsible for alerting the manager when a client is ready to proceed with a service. It triggers a notification based on the client's interest and the service provided. This function ensures that the manager is immediately informed when a client expresses readiness for a deal or when the type of service.
     Args:
         service_name (str): The name of the service for which the notification is being created. Fill this field according to provided service and user interest.
         email (str): The email address of the lead. Ask user to provide it. If not provided - set null
@@ -112,3 +112,87 @@ def update_bot_properties(bot: TelegramBot):
         requests.post(f"{base_url}/setMyName", json={"name": bot.name})
 
     return True
+
+
+@llm_tool
+async def list_pandadoc_files(
+    count: int = 10,
+    order_by: str = "name",
+    order_direction: str = "asc",
+    name_pattern: str = None,
+    file_extension: str = None
+) -> str:
+    """
+    Lists files in the /tmp/doc/ directory with various filtering options.
+    Args:
+        count (int): Maximum number of files to return. Default is 10.
+        order_by (str): Field to order by. One of: 'name', 'size', 'modified'. Default is 'name'.
+        order_direction (str): Order direction. One of: 'asc', 'desc'. Default is 'asc'.
+        name_pattern (str): Pattern to match in file names. If None, no pattern matching is applied.
+        file_extension (str): Filter by file extension (e.g., 'pdf', 'docx'). If None, all extensions are included.
+    Returns:
+        str: JSON string containing the list of files with their properties
+    """
+    import os
+    from datetime import datetime
+    import re
+
+    base_path = "/tmp/doc/"
+    if not os.path.exists(base_path):
+        return "[]"
+
+    files = []
+    for filename in os.listdir(base_path):
+        if file_extension and not filename.endswith(f".{file_extension}"):
+            continue
+        if name_pattern and not re.search(name_pattern, filename, re.IGNORECASE):
+            continue
+
+        file_path = os.path.join(base_path, filename)
+        if os.path.isfile(file_path):
+            stat = os.stat(file_path)
+            files.append({
+                "name": filename,
+                "size": stat.st_size,
+                "modified": datetime.fromtimestamp(stat.st_mtime).isoformat(),
+                "extension": os.path.splitext(filename)[1][1:]
+            })
+
+    # Sort files
+    reverse = order_direction.lower() == "desc"
+    files.sort(key=lambda x: x[order_by], reverse=reverse)
+
+    # Limit count
+    files = files[:count]
+
+    return json.dumps(files)
+
+
+@llm_tool
+async def rename_pandadoc_file(existing_name: str, new_name: str) -> str:
+    """
+    Renames a file in the /tmp/doc/ directory.
+    Args:
+        existing_name (str): Current name of the file
+        new_name (str): New name for the file
+    Returns:
+        str: Success or error message
+    """
+    import os
+    import shutil
+
+    base_path = "/tmp/doc/"
+    old_path = os.path.join(base_path, existing_name)
+    new_path = os.path.join(base_path, new_name)
+
+    if not os.path.exists(old_path):
+        return f"Error: File '{existing_name}' does not exist"
+    
+    if os.path.exists(new_path):
+        return f"Error: File '{new_name}' already exists"
+
+    try:
+        shutil.move(old_path, new_path)
+        return f"Successfully renamed '{existing_name}' to '{new_name}'"
+    except Exception as e:
+        return f"Error renaming file: {str(e)}"
