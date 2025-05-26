@@ -123,7 +123,7 @@ async def list_pandadoc_files(
     file_extension: str = None
 ) -> str:
     """
-    Lists files in the /tmp/doc/ directory with various filtering options.
+    Lists files in the /tmp/pandadoc/ directory with various filtering options.
     Args:
         count (int): Maximum number of files to return. Default is 10.
         order_by (str): Field to order by. One of: 'name', 'size', 'modified'. Default is 'name'.
@@ -137,7 +137,7 @@ async def list_pandadoc_files(
     from datetime import datetime
     import re
 
-    base_path = "/tmp/doc/"
+    base_path = "/tmp/pandadoc/"
     if not os.path.exists(base_path):
         return "[]"
 
@@ -171,7 +171,7 @@ async def list_pandadoc_files(
 @llm_tool
 async def rename_pandadoc_file(existing_name: str, new_name: str) -> str:
     """
-    Renames a file in the /tmp/doc/ directory.
+    Renames a file in the /tmp/pandadoc/ directory.
     Args:
         existing_name (str): Current name of the file
         new_name (str): New name for the file
@@ -181,7 +181,7 @@ async def rename_pandadoc_file(existing_name: str, new_name: str) -> str:
     import os
     import shutil
 
-    base_path = "/tmp/doc/"
+    base_path = "/tmp/pandadoc/"
     old_path = os.path.join(base_path, existing_name)
     new_path = os.path.join(base_path, new_name)
 
