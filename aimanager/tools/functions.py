@@ -1,7 +1,10 @@
 import json
 import httpx
+import logging
 
 from aimanager.tools.scheme import llm_tool
+
+logger = logging.getLogger("django")
 
 
 @llm_tool
@@ -62,7 +65,7 @@ async def list_files(
     import os
     from datetime import datetime
     import re
-
+    logger.info(f"Listing files with parameters: count={count}, order_by={order_by}, order_direction={order_direction}, name_pattern={name_pattern}, file_extension={file_extension}")
     base_path = os.path.join(os.getenv("TMP_PATH"), "doc")
     if not os.path.exists(base_path):
         return "[]"
