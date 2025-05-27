@@ -44,7 +44,7 @@ def fetch_weather_sync(location):
 
 
 @llm_tool
-async def list_files(
+def list_files(
     count: int = 10,
     order_by: str = "name",
     order_direction: str = "asc",
@@ -98,7 +98,7 @@ async def list_files(
 
 
 @llm_tool
-async def rename_file(existing_name: str, new_name: str) -> str:
+def rename_file(existing_name: str, new_name: str) -> str:
     """
     Renames a file in the /tmp/doc/ directory.
     Args:
