@@ -2,9 +2,28 @@ version: '3.8'
 
 volumes:
   postgres_data: {}
+  postgres_vector_data: {}
 
+networks:
+  app_network:
+    driver: bridge
 
 services:
+
+  postgres_vector:
+    image: pgvector/pgvector:pg17
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_VECTOR_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PORT: 5433
+    volumes:
+      - postgres_vector_data:/var/lib/postgresql/data
+    ports:
+      - 5433:5432
+    networks:
+      - app_network
 
   db:
     image: postgres:17-alpine
@@ -17,11 +36,15 @@ services:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - 5432:5432
+    networks:
+      - app_network
 
   redis:
     image: redis:7
     ports:
       - 6379:6379
+    networks:
+      - app_network
 
   app:
     image: app
@@ -40,6 +63,8 @@ services:
     command: python manage.py runserver 0.0.0.0:8000
     ports:
       - 8000:8000
+    networks:
+      - app_network
     logging:
       driver: syslog
       options:
@@ -64,6 +89,8 @@ services:
     command: gunicorn -c gunicorn_config.py main.asgi:application
     ports:
       - 8001:8001
+    networks:
+      - app_network
     logging:
       driver: syslog
       options:
@@ -87,3 +114,5 @@ services:
     command: streamlit run streamlit_app.py
     ports:
       - 8501:8501
+    networks:
+      - app_network

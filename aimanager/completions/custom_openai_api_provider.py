@@ -23,18 +23,24 @@ class CustomOpenAIApiProvider(CompletionProviderInterface):
             base_url = f"{host}/v1"
         self.client = OpenAI(base_url=base_url, api_key=api_key)
 
+    def _generate_response(self, response) -> str:
+        return response.choices[0].message.content
+
+    def _generate_response_stream(self, response) -> Generator:
+        for chunk in response:
+            content = chunk.choices[0].delta.content
+            if content is not None:
+                yield content
+
     @backoff.on_exception(backoff.expo, Exception, max_tries=3)
     def generate_response(
         self, messages: list = None, model: str = None, stream: bool = False
-    ) -> Union[str, Generator]:
+    ):
         response = self.client.chat.completions.create(model=model or self.model, messages=messages, stream=stream)
         if not stream:
-            return response.choices[0].message.content
+            return self._generate_response(response)
         else:
-            for chunk in response:
-                content = chunk.choices[0].delta.content
-                if content is not None:
-                    yield content
+            return self._generate_response_stream(response)
 
 
 class AsyncCustomOpenAIApiProvider(AsyncCompletionProviderInterface):

@@ -36,3 +36,6 @@ shell-sql:
 
 superuser:
 	$(COMPOSE_MANAGE_CMD) createsuperuser
+
+test:
+	$(COMPOSE_CMD) run app python -m unittest

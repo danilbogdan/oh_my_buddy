@@ -6,6 +6,7 @@ import os
 from typing import AsyncGenerator, Generator, Union
 
 from aimanager.completions.builder import AsyncCompletionsClientBuilder, CompletionsClientBuilder
+from aimanager.knowledge.postgresql_vector import KnowledgeManager
 from aimanager.memory.builder import AsyncMemoryProviderBuilder, MemoryProviderBuilder
 from aimanager.tools import invoker, prompts
 
@@ -19,6 +20,7 @@ class BaseAgent(AIAgentInterface):
     model_provider = os.getenv("DEFAULT_MODEL_PROVIDER", "openai")
     memory_provider = os.getenv("DEFAULT_MEMORY_PROVIDER", "redis")
     tools = None
+    use_knowledge_base = False
     system_prompt = (
         "You are an AI assistant. The assistant is helpful, creative,"
         "clever, and very friendly. You help users with his tasks and answers his questions."
@@ -40,6 +42,33 @@ class BaseAgent(AIAgentInterface):
         user_message = [{"role": "user", "content": prompt}]
         self.memory.add_messages_to_conversation(user_message, user_id, self.name, conversation_id)
         return system_messages + conversation_history + user_message
+
+    def _check_knowledge_base(self, prompt: str, conversation_list: list) -> list:
+        if not self.use_knowledge_base or not hasattr(self, "knowledge"):
+            return conversation_list
+
+        knowledge_prompt = prompts.KNOWLEDGE_PROMPT_TEMPLATE.format(prompt=prompt)
+        response_gen = self.completions.generate_response(
+            [{"role": "user", "content": knowledge_prompt}], model=self.model
+        )
+        query = ""
+        for chunk in response_gen:
+            query += chunk
+        queries = [q.strip() for q in query.split("\n") if q.strip()]
+        all_results = []
+        for q in queries:
+            search_results = self.knowledge.search(q)
+            all_results.extend(search_results)
+
+        if not all_results:
+            return conversation_list
+
+        knowledge_base_content = "\n\n".join(all_results)
+        knowledge_message = {
+            "role": "system",
+            "content": f"Here is some information from the knowledge base:\n{knowledge_base_content}",
+        }
+        return [conversation_list[0]] + [knowledge_message] + conversation_list[1:]
 
     def _check_tools(self, response: str, conversation_list: list) -> dict:
         response = invoker.parse_llm_response(response)
@@ -80,6 +109,9 @@ class BaseAgent(AIAgentInterface):
         self.tools_registry = {}
         for tool in kwargs.get("tools") or self.tools or []:
             self.register_tool(tool)
+        self.use_knowledge_base = kwargs.get("use_knowledge_base", self.use_knowledge_base)
+        if self.use_knowledge_base:
+            self.knowledge = KnowledgeManager()
 
     def get_conversation(self, user_id: str, conversation_id: str = None) -> list[dict]:
         conversation = self.memory.get_conversation(user_id, self.name, conversation_id)
@@ -90,14 +122,16 @@ class BaseAgent(AIAgentInterface):
 
     def generate_response(self, prompt: str, user_id: str, conversation_id: str = None) -> str:
         messages = self._compose_messages_list(prompt, user_id, conversation_id)
+        messages = self._check_knowledge_base(prompt, messages)
         response = self.completions.generate_response(messages, model=self.model)
-        self._check_tools(response, messages)
+        response = self._check_tools(response, messages)
         message = [{"role": "assistant", "content": response}]
         self.memory.add_messages_to_conversation(message, user_id, self.name, conversation_id)
         return response
 
     def generate_response_stream(self, prompt: str, user_id: str, conversation_id: str = None) -> Generator[str]:
         messages = self._compose_messages_list(prompt, user_id, conversation_id)
+        messages = self._check_knowledge_base(prompt, messages)
         stream = self.completions.generate_response(messages, model=self.model, stream=True)
         response = ""
         for chunk in stream:
@@ -116,6 +150,7 @@ class BaseAsyncAgent(AsyncAIAgentInterface):
     model_provider = os.getenv("DEFAULT_MODEL_PROVIDER", "openai")
     memory_provider = os.getenv("DEFAULT_MEMORY_PROVIDER", "aioredis")
     tools = None
+    use_knowledge_base = False
     system_prompt = (
         "You are an AI assistant. The assistant is helpful, creative,"
         "clever, and very friendly. You help users with his tasks and answers his questions."
@@ -136,6 +171,36 @@ class BaseAsyncAgent(AsyncAIAgentInterface):
         user_message = [{"role": "user", "content": prompt}]
         await self.memory.async_add_messages_to_conversation(user_message, user_id, self.name, conversation_id)
         return system_messages + conversation_history + user_message
+
+    async def _check_knowledge_base(self, prompt: str, conversation_list: list) -> list:
+        if not self.use_knowledge_base or not hasattr(self, "knowledge"):
+            return conversation_list
+
+        knowledge_prompt = prompts.KNOWLEDGE_PROMPT_TEMPLATE.format(prompt=prompt)
+
+        query_stream = await self.completions.async_generate_response(
+            [{"role": "user", "content": knowledge_prompt}], model=self.model
+        )
+        
+        query = ""
+        async for chunk in query_stream:
+            query += chunk
+            
+        queries = [q.strip() for q in query.split("\n") if q.strip()]
+
+        search_tasks = [asyncio.to_thread(self.knowledge.search, q) for q in queries]
+        all_results_lists = await asyncio.gather(*search_tasks)
+        all_results = [item for sublist in all_results_lists for item in sublist]
+
+        if not all_results:
+            return conversation_list
+
+        knowledge_base_content = "\n\n".join(all_results)
+        knowledge_message = {
+            "role": "system",
+            "content": f"Here is some information from the knowledge base:\n{knowledge_base_content}",
+        }
+        return [conversation_list[0]] + [knowledge_message] + conversation_list[1:]
 
     async def _check_tools(self, response: str, conversation_list: list) -> dict:
         response = invoker.parse_llm_response(response)
@@ -177,6 +242,9 @@ class BaseAsyncAgent(AsyncAIAgentInterface):
         self.tools_registry = {}
         for tool in kwargs.get("tools") or self.tools or []:
             self.register_tool(tool)
+        self.use_knowledge_base = kwargs.get("use_knowledge_base", self.use_knowledge_base)
+        if self.use_knowledge_base:
+            self.knowledge = KnowledgeManager()
 
     async def async_get_conversation(self, user_id: str, conversation_id: str = None) -> list[dict]:
         conversation = await self.memory.async_get_conversation(user_id, self.name, conversation_id)
@@ -187,6 +255,7 @@ class BaseAsyncAgent(AsyncAIAgentInterface):
 
     async def async_generate_response(self, prompt: str, user_id: str, conversation_id: str = None) -> str:
         messages = await self._compose_messages_list(prompt, user_id, conversation_id)
+        messages = await self._check_knowledge_base(prompt, messages)
         response = await self.completions.async_generate_response(messages, model=self.model)
         response = await self._check_tools(response, messages)
         message = [{"role": "assistant", "content": response}]
@@ -196,7 +265,8 @@ class BaseAsyncAgent(AsyncAIAgentInterface):
     async def async_generate_response_stream(
         self, prompt: str, user_id: str, conversation_id: str = None
     ) -> AsyncGenerator[str]:
-        messages = self._compose_messages_list(prompt, user_id, conversation_id)
+        messages = await self._compose_messages_list(prompt, user_id, conversation_id)
+        messages = await self._check_knowledge_base(prompt, messages)
         stream = await self.completions.async_generate_response(messages, model=self.model, stream=True)
         response = ""
         async for chunk in stream:

@@ -17,3 +17,7 @@ class ConfigRepository:
     @classmethod
     def get_model(cls):
         return DefaultConfig.get_solo().model
+    
+    @classmethod
+    def get_use_knowledge_base(cls):
+        return DefaultConfig.get_solo().use_knowledge_base

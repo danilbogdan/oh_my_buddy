@@ -31,11 +31,19 @@ class ChatbotPromptView(APIView):
             agent = ConfigRepository.get_agent()
             model = ConfigRepository.get_model()
             provider = ConfigRepository.get_provider()
+            use_knowledge_base = ConfigRepository.get_use_knowledge_base()
 
             system_prompt = None
             if agent_id:
                 system_prompt = AgentRepository.get_system_prompt_for_agent(agent_id)
-            agent = LLMAgentBuilder.build(agent_name=agent, provider=provider, model=model, system_prompt=system_prompt)
+                use_knowledge_base = AgentRepository.get_use_knowledge_base_for_agent(agent_id)
+            agent = LLMAgentBuilder.build(
+                agent_name=agent,
+                provider=provider,
+                model=model,
+                system_prompt=system_prompt,
+                use_knowledge_base=use_knowledge_base,
+            )
             conversation = ConversationRepository.get(conversation_id)
             if not conversation.title:
                 ConversationRepository.update_title(conversation_id, prompt[:20])

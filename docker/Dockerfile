@@ -10,7 +10,7 @@ WORKDIR /app
 COPY requirements.txt /app/
 
 # Install the dependencies from the requirements file
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
 #Copy several shell scripts and make them executable in one layer
 COPY start /usr/bin/

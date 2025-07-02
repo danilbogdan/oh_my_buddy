@@ -14,6 +14,11 @@ class AgentRepository:
         return agent.instructions
 
     @staticmethod
+    def get_use_knowledge_base_for_agent(agent_id: int):
+        agent = AgentRepository.get(agent_id=agent_id)
+        return agent.use_knowledge_base
+
+    @staticmethod
     def get_active_agents():
         return Agent.objects.filter(is_active=True)
 

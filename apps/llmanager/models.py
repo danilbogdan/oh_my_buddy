@@ -11,6 +11,7 @@ class DefaultConfig(SingletonModel):
     model = models.CharField(max_length=255, default="gpt-4o-mini")
     provider = models.CharField(max_length=255, default="openai")
     agent = models.CharField(max_length=255, default="base")
+    use_knowledge_base = models.BooleanField(default=False)
 
 
 class Agent(models.Model):
@@ -21,6 +22,7 @@ class Agent(models.Model):
     provider = models.CharField(max_length=255, default="openai")
     metadata = models.JSONField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
+    use_knowledge_base = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = _("Agent")
