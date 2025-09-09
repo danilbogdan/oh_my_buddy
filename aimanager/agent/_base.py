@@ -53,7 +53,7 @@ class BaseAgent(AIAgentInterface):
                 message += [
                     {
                         "role": "developer",
-                        "content": f"You successfully triggered a function {fname} and it returned: {result}",
+                        "content": f"You successfully triggered a function {fname} and it returned: {result}. Please use this result in your response.",
                     }
                 ]
             except Exception as e:
@@ -91,7 +91,8 @@ class BaseAgent(AIAgentInterface):
     def generate_response(self, prompt: str, user_id: str, conversation_id: str = None) -> str:
         messages = self._compose_messages_list(prompt, user_id, conversation_id)
         response = self.completions.generate_response(messages, model=self.model)
-        self._check_tools(response, messages)
+        tools_response = self._check_tools(response, messages)
+        response = tools_response if tools_response else response
         message = [{"role": "assistant", "content": response}]
         self.memory.add_messages_to_conversation(message, user_id, self.name, conversation_id)
         return response

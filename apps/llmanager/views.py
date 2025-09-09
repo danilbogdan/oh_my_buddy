@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from aimanager.agent.builder import LLMAgentBuilder
+from aimanager.tools.functions import list_files, rename_file
 from apps.llmanager.repositories.agent import AgentRepository
 from apps.llmanager.repositories.conversation import ConversationRepository
 from apps.llmanager.repositories.provider_config import ConfigRepository
@@ -39,10 +40,14 @@ class ChatbotPromptView(APIView):
             conversation = ConversationRepository.get(conversation_id)
             if not conversation.title:
                 ConversationRepository.update_title(conversation_id, prompt[:20])
-            response_generator = agent.generate_response_stream(prompt, user_id, conversation_id)
-            response = StreamingHttpResponse(response_generator, content_type="text/event-stream; charset=utf-8")
+            agent.register_tool(list_files)
+            agent.register_tool(rename_file)
+            # response_generator = agent.generate_response_stream(prompt, user_id, conversation_id)
+            resonse = agent.generate_response(prompt, user_id, conversation_id)
+            response = StreamingHttpResponse(resonse, content_type="text/event-stream; charset=utf-8")
             response["Cache-Control"] = "no-cache"
             return response
+            # return Response()
         except json.JSONDecodeError:
             return Response({"error": "Invalid JSON"}, status=status.HTTP_400_BAD_REQUEST)
         except Exception as e:
